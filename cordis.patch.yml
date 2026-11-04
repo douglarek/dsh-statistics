@@ -4,7 +4,7 @@
 # as the starting point for overrides in the profile patch.
 - insert:
     - id: statistics
-      name: '@local/dsh-statistics'
+      name: '@douglarek/dsh-statistics'
       config:
         # Tokens are priced per 1,000,000 for each bucket. `match` is matched
         # against both "<provider>/<model>" and "<model>" with `*` wildcards.

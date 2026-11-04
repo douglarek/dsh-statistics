@@ -1,5 +1,5 @@
 {
-  "name": "@local/dsh-statistics",
+  "name": "@douglarek/dsh-statistics",
   "version": "1.0.0",
   "private": true,
   "description": "Token usage, cost, budget, and CPU statistics for the conversations in this DeepSeek Harness profile",
