@@ -1,11 +1,10 @@
 {
   "meta": {
     "title": "Statistics",
-    "description": "Token usage, estimated cost and budget, per-conversation spend, and CPU activity for every conversation stored in this profile."
+    "description": "Token usage, estimated cost and budget for every conversation in this profile, plus the CPU activity of this process."
   },
   "panel": {
     "title": "Statistics",
-    "subtitle": "Token usage, cost, and activity across every conversation in this profile",
     "refresh": "Refresh",
     "autoRefresh": "Auto refresh",
     "updated": "Updated {time}",

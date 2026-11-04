@@ -1,11 +1,10 @@
 {
   "meta": {
     "title": "统计",
-    "description": "本配置文件中每个对话的 token 用量、预估费用与预算、单个对话花费，以及 CPU 活动与占用。"
+    "description": "汇总当前配置档案里所有对话的 token 用量、预估费用与预算，以及本机进程的 CPU 活动。"
   },
   "panel": {
     "title": "统计",
-    "subtitle": "本配置文件中全部对话的 token 用量、费用与活动",
     "refresh": "刷新",
     "autoRefresh": "自动刷新",
     "updated": "更新于 {time}",

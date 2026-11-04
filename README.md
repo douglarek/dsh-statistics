@@ -16,13 +16,14 @@ profile and reports what those conversations actually cost. It adds a
 - **Models** — token volume and cost per `provider/model`, flagging models that
   fell back to the catch-all rate.
 - **Conversations** — a sortable table of every conversation with its tokens,
-  estimated cost, and attributed CPU time.
+  estimated cost, and attributed CPU time, newest activity first by default.
 - **CPU activity** — the host process utilization history (last few minutes),
   system utilization, load average, core count, and memory, next to live
   per-conversation CPU attribution.
 
-Ranges: last 7, 30, or 90 days, or everything. The header reports the data
-source and the number of logs scanned.
+Ranges: today, last 7, last 30, last 90 days, or everything (the default). The
+header reports the data source and the number of logs scanned. A single day has
+no temporal resolution to chart, so the timeline is left out of the today range.
 
 ## Where the numbers come from
 
@@ -34,6 +35,11 @@ attributed to the model named on each message.
 
 Cost is an estimate: tokens are multiplied by the rate card below. The budget
 card compares that estimate with `budgetUsd` for the selected period.
+
+A conversation's **last active** time is the last turn, step, message, tool
+call, or compaction event — bookkeeping events (`session/end-seed`,
+`permission/preset`, `sandbox/mode`, `workspace/changes`) are written whenever a
+Session is opened again and must not move that date.
 
 CPU is measured in this process: `process.cpuUsage()` deltas and `os.cpus()`
 idle deltas sampled every `cpuIntervalMs`. Each interval's CPU time is split

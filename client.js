@@ -13,7 +13,6 @@ window.__ModuleLoader__.load({
 
     const EN = {
       'panel.title': 'Statistics',
-      'panel.subtitle': 'Token usage, cost, and activity across every conversation in this profile',
       'panel.refresh': 'Refresh',
       'panel.autoRefresh': 'Auto refresh',
       'panel.updated': 'Updated {time}',
@@ -26,6 +25,7 @@ window.__ModuleLoader__.load({
       'panel.rangeDays': 'Last {days} days',
       'panel.source': 'Source: {source} · {sessions} logs scanned',
       'panel.rangeLabel': 'Range',
+      'range.d1': 'Today',
       'range.d7': '7d',
       'range.d30': '30d',
       'range.d90': '90d',
@@ -50,9 +50,10 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': 'Input',
       'timeline.legendOutput': 'Output',
       'timeline.legendCache': 'Cache read',
-      'timeline.modeTotal': 'All tokens',
+      'timeline.modeTotal': 'All',
       'timeline.modeBillable': 'Input + output',
       'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} conversations · {turns} turns',
+      'timeline.tipTotal': 'Total',
       'timeline.peak': 'Peak {date} · {tokens}',
       'timeline.sessions': '{count} conversations',
       'cpu.title': 'CPU activity',
@@ -86,7 +87,6 @@ window.__ModuleLoader__.load({
 
     const ZH = {
       'panel.title': '统计',
-      'panel.subtitle': '本配置文件中全部对话的 token 用量、费用与活动',
       'panel.refresh': '刷新',
       'panel.autoRefresh': '自动刷新',
       'panel.updated': '更新于 {time}',
@@ -99,6 +99,7 @@ window.__ModuleLoader__.load({
       'panel.rangeDays': '近 {days} 天',
       'panel.source': '数据源：{source} · 已扫描 {sessions} 份日志',
       'panel.rangeLabel': '范围',
+      'range.d1': '今天',
       'range.d7': '7 天',
       'range.d30': '30 天',
       'range.d90': '90 天',
@@ -123,9 +124,10 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': '输入',
       'timeline.legendOutput': '输出',
       'timeline.legendCache': '缓存读取',
-      'timeline.modeTotal': '全部 token',
+      'timeline.modeTotal': '全部',
       'timeline.modeBillable': '输入 + 输出',
       'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} 个对话 · {turns} 轮',
+      'timeline.tipTotal': '合计',
       'timeline.peak': '峰值 {date} · {tokens}',
       'timeline.sessions': '{count} 个对话',
       'cpu.title': 'CPU 活动',
@@ -158,12 +160,11 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:color-mix(in srgb,var(--dsw-static-blue-500,#3b82f6) 24%,transparent)}
-.dshstat-inner{max-width:1160px;margin:0 auto;padding:26px 32px 64px;display:flex;flex-direction:column;gap:18px}
+.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:color-mix(in srgb,var(--dsw-static-blue-500,#3b82f6) 45%,transparent)}
+.dshstat-inner{max-width:1160px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;display:flex;flex-direction:column;gap:18px}
 .dshstat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.dshstat-title{margin:0;font-size:21px;font-weight:600;letter-spacing:-0.01em}
-.dshstat-sub{margin:3px 0 0;color:var(--dsw-alias-label-secondary);font-size:12.5px}
-.dshstat-meta{margin-top:6px;color:var(--dsw-alias-label-secondary);font-size:11.5px;font-variant-numeric:tabular-nums}
+.dshstat-title{margin:0;font-size:20px;font-weight:500;line-height:28px}
+.dshstat-meta{margin-top:6px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:18px;font-variant-numeric:tabular-nums}
 .dshstat-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .dshstat-btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer;transition:border-color .12s ease,background .12s ease}
 .dshstat-btn:hover{border-color:var(--dsw-alias-border-l2)}
@@ -171,7 +172,7 @@ window.__ModuleLoader__.load({
 .dshstat-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l1);border-radius:7px;overflow:hidden;background:var(--dsw-alias-bg-layer-1)}
 .dshstat-seg button{height:28px;padding:0 10px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
 .dshstat-seg button+button{border-left:1px solid var(--dsw-alias-border-l1)}
-.dshstat-seg button[data-on="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dshstat-seg button[data-on="true"]{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dshstat-card{border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;min-width:0}
 .dshstat-kpi-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -189,13 +190,21 @@ window.__ModuleLoader__.load({
 .dshstat-h2{margin:0;font-size:13.5px;font-weight:600}
 .dshstat-legend{display:flex;align-items:center;gap:12px;color:var(--dsw-alias-label-secondary);font-size:11.5px;flex-wrap:wrap}
 .dshstat-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
-.dshstat-chart{display:flex;align-items:stretch;gap:2px;height:150px;position:relative}
+.dshstat-plot{display:flex;align-items:stretch;gap:10px;height:168px}
+.dshstat-scale{flex:none;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;min-width:38px;color:var(--dsw-alias-label-tertiary);font-size:10.5px;line-height:1;font-variant-numeric:tabular-nums}
+.dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:2px;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dshstat-gridline{position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--dsw-alias-border-l1);pointer-events:none}
-.dshstat-col{flex:1 1 0;min-width:2px;display:flex;flex-direction:column;justify-content:flex-end;cursor:default;border-radius:3px;position:relative}
-.dshstat-col[data-hover="true"]{background:var(--dsw-alias-bg-layer-2)}
-.dshstat-col[data-on="true"]{outline:1px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dshstat-stack{display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:3px 3px 1px 1px;overflow:hidden}
-.dshstat-axis{display:flex;justify-content:space-between;color:var(--dsw-alias-label-secondary);font-size:11px;margin-top:8px;font-variant-numeric:tabular-nums}
+.dshstat-col{flex:1 1 0;min-width:2px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;position:relative}
+.dshstat-col[data-on="true"]::after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:min(40px,100%);bottom:-5px;height:2px;border-radius:1px;background:var(--dsw-alias-brand-primary)}
+.dshstat-stack{position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%;width:100%;max-width:40px;margin:0 auto;border-radius:4px 4px 0 0;overflow:hidden}
+.dshstat-stack::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;transition:background .12s ease}
+.dshstat-col[data-hover="true"] .dshstat-stack::after,.dshstat-col[data-on="true"] .dshstat-stack::after{background:var(--dsw-alias-interactive-bg-hover)}
+.dshstat-axis{display:flex;justify-content:space-between;color:var(--dsw-alias-label-secondary);font-size:11px;margin-top:14px;font-variant-numeric:tabular-nums}
+.dshstat-tip{position:absolute;z-index:3;min-width:152px;padding:8px 10px;border-radius:9px;border:1px solid var(--dsw-alias-border-l3);background:var(--dsw-alias-bg-layer-1);box-shadow:0 8px 24px #0000001f,0 1px 2px #00000014;pointer-events:none;font-size:11.5px;line-height:1.65;color:var(--dsw-alias-label-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dshstat-tip-head{margin-bottom:3px;font-weight:600}
+.dshstat-tip-row{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--dsw-alias-label-secondary)}
+.dshstat-tip-row b{color:var(--dsw-alias-label-primary);font-weight:500}
+.dshstat-tip-total{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:5px;padding-top:5px;border-top:1px solid var(--dsw-alias-border-l1)}
 .dshstat-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--dsw-alias-border-l1);display:flex;gap:18px;flex-wrap:wrap;font-size:12px;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-secondary)}
 .dshstat-detail b{color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-split{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px}
@@ -593,6 +602,17 @@ window.__ModuleLoader__.load({
       const active = series[activeIndex]
       const peak = series.reduce((best, entry) => (peakOf(entry) > peakOf(best) ? entry : best), series[0] ?? null)
 
+      const tip = hover !== null && series[hover] ? series[hover] : null
+      const tipRatio = tip ? Math.min(peakOf(tip) / (max || 1), 1) : 0
+      const tipAbove = tipRatio <= 0.35
+      const tipRow = (label, value, color) =>
+        h(
+          'div',
+          { className: 'dshstat-tip-row' },
+          h('span', null, h('i', { className: 'dshstat-dot', style: { background: color } }), label),
+          h('b', null, fmt.compact(value)),
+        )
+
       const segments = (entry) => {
         const tokens = entry.tokens ?? emptyBuckets()
         const cache = mode === 'billable' ? 0 : tokens.cacheRead
@@ -659,34 +679,70 @@ window.__ModuleLoader__.load({
               null,
               h(
                 'div',
-                { className: 'dshstat-chart' },
-                h('div', { key: 'grid', className: 'dshstat-gridline' }),
-                series.map((entry, index) =>
-                  h(
-                    'div',
-                    {
-                      key: entry.day,
-                      className: 'dshstat-col',
-                      'data-on': index === activeIndex,
-                      'data-hover': index === hover,
-                      title: t('timeline.daySummary', {
-                        tokens: fmt.int(sumBuckets(entry.tokens)),
-                        cost: fmt.usd(entry.cost),
-                        sessions: entry.sessions ?? 0,
-                        turns: entry.turns ?? 0,
-                      }),
-                      onMouseEnter: () => setHover(index),
-                      onMouseLeave: () => setHover(null),
-                      onClick: () => setSelected(index),
-                    },
+                { className: 'dshstat-plot' },
+                max > 0
+                  ? h(
+                      'div',
+                      { className: 'dshstat-scale', 'aria-hidden': 'true' },
+                      h('span', null, fmt.compact(max)),
+                      h('span', null, fmt.compact(max / 2)),
+                      h('span', null, '0'),
+                    )
+                  : null,
+                h(
+                  'div',
+                  { className: 'dshstat-chart' },
+                  h('div', { key: 'grid', className: 'dshstat-gridline' }),
+                  series.map((entry, index) =>
                     h(
                       'div',
-                      { className: 'dshstat-stack' },
-                      segments(entry).map((segment) =>
-                        h('div', { key: segment.key, style: { height: `${segment.value}%`, background: segment.color } }),
+                      {
+                        key: entry.day,
+                        className: 'dshstat-col',
+                        'data-on': index === activeIndex,
+                        'data-hover': index === hover,
+                        'aria-label': t('timeline.daySummary', {
+                          tokens: fmt.int(sumBuckets(entry.tokens)),
+                          cost: fmt.usd(entry.cost),
+                          sessions: entry.sessions ?? 0,
+                          turns: entry.turns ?? 0,
+                        }),
+                        onMouseEnter: () => setHover(index),
+                        onMouseLeave: () => setHover(null),
+                        onClick: () => setSelected(index),
+                      },
+                      h(
+                        'div',
+                        { className: 'dshstat-stack' },
+                        segments(entry).map((segment) =>
+                          h('div', { key: segment.key, style: { height: `${segment.value}%`, background: segment.color } }),
+                        ),
                       ),
                     ),
                   ),
+                  tip
+                    ? h(
+                        'div',
+                        {
+                          className: 'dshstat-tip',
+                          style: {
+                            left: `clamp(88px, ${((hover + 0.5) / series.length) * 100}%, calc(100% - 88px))`,
+                            top: `${(1 - tipRatio) * 100}%`,
+                            transform: `translate(-50%, ${tipAbove ? 'calc(-100% - 10px)' : '10px'})`,
+                          },
+                        },
+                        h('div', { className: 'dshstat-tip-head' }, fmt.dayLong(tip.day)),
+                        tipRow(t('timeline.legendInput'), tip.tokens?.input ?? 0, 'var(--dshstat-blue)'),
+                        tipRow(t('timeline.legendOutput'), tip.tokens?.output ?? 0, 'var(--dshstat-green)'),
+                        tipRow(t('timeline.legendCache'), tip.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
+                        h(
+                          'div',
+                          { className: 'dshstat-tip-total' },
+                          h('span', null, t('timeline.tipTotal'), ' ', h('b', null, fmt.compact(sumBuckets(tip.tokens)))),
+                          h('b', null, fmt.usd(tip.cost)),
+                        ),
+                      )
+                    : null,
                 ),
               ),
               h(
@@ -853,7 +909,7 @@ window.__ModuleLoader__.load({
     }
 
     function ConversationTable({ rows, t, fmt }) {
-      const [sort, setSort] = useState({ key: 'totalTokens', dir: 'desc' })
+      const [sort, setSort] = useState({ key: 'lastAt', dir: 'desc' })
       const maxTokens = rows.reduce((value, row) => Math.max(value, row.totalTokens), 0)
       const sorted = useMemo(() => {
         const factor = sort.dir === 'asc' ? 1 : -1
@@ -996,7 +1052,6 @@ window.__ModuleLoader__.load({
               'div',
               null,
               h('h1', { className: 'dshstat-title' }, t('panel.title')),
-              h('p', { className: 'dshstat-sub' }, t('panel.subtitle')),
               h(
                 'div',
                 { className: 'dshstat-meta' },
@@ -1016,6 +1071,7 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'dshstat-seg', role: 'group', 'aria-label': t('panel.rangeLabel') },
                 [
+                  [1, t('range.d1')],
                   [7, t('range.d7')],
                   [30, t('range.d30')],
                   [90, t('range.d90')],
@@ -1071,7 +1127,9 @@ window.__ModuleLoader__.load({
             budget ? h(BudgetCard, { budget, t, fmt }) : null,
           ),
 
-          h(Timeline, { series, mode, setMode, t, fmt, key: `timeline-${rangeDays}` }),
+          // A per-day chart has no temporal resolution inside a single day, so the
+          // Today range shows the KPI cards, models, and conversations without it.
+          rangeDays === 1 ? null : h(Timeline, { series, mode, setMode, t, fmt, key: `timeline-${rangeDays}` }),
 
           h(
             'div',
