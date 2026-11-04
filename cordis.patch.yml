@@ -1,0 +1,44 @@
+# dsh-statistics bundle: insert the Host row that serves /api/statistics/snapshot.
+#
+# Every option has a code default; the values below are those defaults, kept here
+# as the starting point for overrides in the profile patch.
+- insert:
+    - id: statistics
+      name: '@local/dsh-statistics'
+      config:
+        # Tokens are priced per 1,000,000 for each bucket. `match` is matched
+        # against both "<provider>/<model>" and "<model>" with `*` wildcards.
+        rates:
+          - match: 'deepseek-v4.1-flash*'
+            input: 0.14
+            output: 0.28
+            cacheRead: 0.0028
+          - match: 'deepseek-v4-flash*'
+            input: 0.14
+            output: 0.28
+            cacheRead: 0.0028
+          - match: 'deepseek-v4-pro*'
+            input: 0.435
+            output: 0.87
+            cacheRead: 0.003625
+          - match: '*deepseek*'
+            input: 0.27
+            output: 1.1
+            cacheRead: 0.07
+        # Applied to every model no rule above matches.
+        fallbackRate:
+          input: 0.27
+          output: 1.1
+          cacheRead: 0.07
+        # Budget shown against the estimated spend of the current period.
+        budgetUsd: 20
+        budgetPeriod: month
+        # CPU sampling for the activity chart and per-conversation attribution.
+        cpuIntervalMs: 2000
+        cpuHistorySize: 120
+        # Client polling interval for the panel.
+        refreshMs: 4000
+        # Candidate session logs re-scanned at most this often.
+        statsTtlMs: 15000
+        includeSubagents: true
+        maxSessions: 500

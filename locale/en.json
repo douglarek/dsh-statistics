@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "title": "Statistics",
+    "description": "Token usage, estimated cost and budget, per-conversation spend, and CPU activity for every conversation stored in this profile."
+  },
+  "panel": {
+    "title": "Statistics",
+    "subtitle": "Token usage, cost, and activity across every conversation in this profile",
+    "refresh": "Refresh",
+    "autoRefresh": "Auto refresh",
+    "updated": "Updated {time}",
+    "empty": "No conversation logs with token usage were found yet.",
+    "loading": "Reading conversation logs…",
+    "failed": "Could not read the statistics: {message}",
+    "retry": "Retry",
+    "range": "Range",
+    "rangeAll": "All",
+    "rangeDays": "Last {days} days",
+    "source": "Source: {source} · {sessions} logs scanned"
+  },
+  "kpi": {
+    "tokens": "Total tokens",
+    "tokensHint": "{input} input · {output} output · {cache} cache read",
+    "conversations": "Conversations",
+    "conversationsHint": "{turns} turns · {steps} steps · {tools} tool calls",
+    "cost": "Estimated cost",
+    "costHint": "{priced} of {total} conversations matched a rate",
+    "budget": "Budget",
+    "budgetHint": "{spent} of {budget} used this {period}",
+    "budgetProjection": "Projected {amount} by {label}",
+    "budgetOver": "Over budget by {amount}",
+    "periodMonth": "month",
+    "periodWeek": "week",
+    "periodDay": "day",
+    "periodAll": "period"
+  },
+  "timeline": {
+    "title": "Token usage timeline",
+    "empty": "No usage in this range.",
+    "legendInput": "Input",
+    "legendOutput": "Output",
+    "legendCache": "Cache read",
+    "legendCost": "Cost",
+    "day": "{date}",
+    "daySummary": "{tokens} tokens · {cost} · {sessions} conversations",
+    "peak": "Peak day {date} · {tokens}",
+    "sessions": "{count} conversations"
+  },
+  "cpu": {
+    "title": "CPU activity",
+    "process": "Harness process",
+    "system": "System",
+    "load": "Load 1m",
+    "cores": "{count} cores",
+    "memory": "Memory",
+    "uptime": "Sampling for {duration}",
+    "average": "Average {value}",
+    "peak": "Peak {value}",
+    "active": "{count} active now",
+    "idle": "No conversation running",
+    "history": "Last {seconds}s",
+    "perConversation": "CPU",
+    "noSample": "—"
+  },
+  "models": {
+    "title": "Models",
+    "empty": "No model usage recorded.",
+    "fallback": "fallback rate"
+  },
+  "table": {
+    "title": "Conversations",
+    "empty": "No conversations in this range.",
+    "conversation": "Conversation",
+    "model": "Model",
+    "lastActive": "Last active",
+    "input": "Input",
+    "output": "Output",
+    "cacheRead": "Cache",
+    "tokens": "Tokens",
+    "cost": "Cost",
+    "cpu": "CPU",
+    "share": "Share",
+    "untitled": "Untitled conversation",
+    "subagent": "Subagent",
+    "unpriced": "Fallback rate"
+  }
+}
