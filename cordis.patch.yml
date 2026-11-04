@@ -8,19 +8,35 @@
       config:
         # Tokens are priced per 1,000,000 for each bucket. `match` is matched
         # against both "<provider>/<model>" and "<model>" with `*` wildcards.
+        #
+        # USD prices are the official DeepSeek PEAK rates, taken from
+        # https://api-docs.deepseek.com/quick_start/pricing/ on 2026-11-04.
+        # DeepSeek bills peak and off-peak (off-peak is exactly half), and this
+        # panel is an estimate, so every rule below uses the higher peak price.
+        #   deepseek-flash   = DeepSeek-V4.1-Flash-1017 (our default model)
+        #   deepseek-v4-pro  = DeepSeek-V4-Pro-0813
         rates:
+          # Any flash build, including the retired deepseek-v4-flash alias that
+          # DeepSeek still serves from the V4.1-Flash model at flash price.
+          # This also covers this profile's own model, deepseek-v4.1-flash-1017.
           - match: 'deepseek-v4.1-flash*'
-            input: 0.14
-            output: 0.28
-            cacheRead: 0.0028
+            input: 0.3
+            output: 1.2
+            cacheRead: 0.006
           - match: 'deepseek-v4-flash*'
-            input: 0.14
-            output: 0.28
-            cacheRead: 0.0028
+            input: 0.3
+            output: 1.2
+            cacheRead: 0.006
           - match: 'deepseek-v4-pro*'
-            input: 0.435
-            output: 0.87
-            cacheRead: 0.003625
+            input: 1.32
+            output: 3.96
+            cacheRead: 0.044
+          # Z.ai / Zhipu GLM-5.3-Flash list price: $0.15 in, $0.50 out, $0.03
+          # cached input (CNY list: 0.8 / 2.8 / 0.23 per 1M).
+          - match: '*glm-5.3-flash*'
+            input: 0.15
+            output: 0.5
+            cacheRead: 0.03
           - match: '*deepseek*'
             input: 0.27
             output: 1.1
