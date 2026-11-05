@@ -219,7 +219,7 @@ window.__ModuleLoader__.load({
 .dshstat-model-id{font-family:var(--dsw-font-mono,ui-monospace,Menlo,monospace);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dshstat-model-num{color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dshstat-table{display:flex;flex-direction:column}
-.dshstat-thead,.dshstat-tr{display:grid;grid-template-columns:minmax(0,1fr) 96px 96px 88px 64px;gap:16px;align-items:center;padding:9px 12px;border-radius:8px}
+.dshstat-thead,.dshstat-tr{display:grid;grid-template-columns:minmax(200px,2.5fr) minmax(88px,1fr) minmax(104px,1.15fr) minmax(80px,0.95fr) minmax(52px,0.6fr);gap:16px;align-items:center;padding:9px 12px;border-radius:8px}
 .dshstat-thead{color:var(--dsw-alias-label-secondary);font-size:11.5px;border-bottom:1px solid var(--dsw-alias-border-l1);border-radius:0}
 .dshstat-th{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:inline-flex;align-items:center;gap:4px}
 .dshstat-th[data-num="true"]{flex-direction:row-reverse;justify-content:flex-start;width:100%;text-align:right}
@@ -234,13 +234,16 @@ window.__ModuleLoader__.load({
 .dshstat-tok{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .dshstat-tokbar{width:100%;height:4px;border-radius:99px;background:var(--dshstat-track);overflow:hidden}
 .dshstat-tokbar span{display:block;height:100%;background:linear-gradient(90deg,var(--dshstat-blue),var(--dshstat-indigo));border-radius:99px}
+.dshstat-tip{position:fixed;z-index:60;display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 28px rgba(0,0,0,.18);pointer-events:none;font-size:12px;line-height:1.4}
+.dshstat-tip b{font-weight:600;word-break:break-word}
+.dshstat-tip span{font-size:11px;color:var(--dsw-alias-label-secondary);word-break:break-all;font-family:var(--dsw-font-mono,ui-monospace,Menlo,monospace)}
 .dshstat-tag{display:inline-flex;align-items:center;flex:none;height:16px;padding:0 5px;border-radius:4px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);font-size:10px;line-height:1}
 .dshstat-notice{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;padding:10px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;background:var(--dsw-alias-bg-layer-1)}
 .dshstat-state{padding:48px 8px;text-align:center;color:var(--dsw-alias-label-secondary);font-size:13px}
 .dshstat-spin{display:inline-block;width:12px;height:12px;border:2px solid var(--dsw-alias-border-l2);border-top-color:var(--dsw-alias-brand-primary);border-radius:50%;animation:dshstat-spin .8s linear infinite;vertical-align:-2px;margin-right:7px}
 @keyframes dshstat-spin{to{transform:rotate(360deg)}}
 @media (max-width:1040px){.dshstat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dshstat-split{grid-template-columns:minmax(0,1fr)}.dshstat-inner{padding:20px 18px 48px}.dshstat-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:720px){.dshstat-thead,.dshstat-tr{grid-template-columns:minmax(0,1fr) 84px 96px 78px;gap:12px}.dshstat-cpu-col{display:none}}
+@media (max-width:720px){.dshstat-thead,.dshstat-tr{grid-template-columns:minmax(0,2.2fr) minmax(80px,1fr) minmax(96px,1.1fr) minmax(72px,0.9fr);gap:12px}.dshstat-cpu-col{display:none}}
 `
 
     function emptyBuckets() {
@@ -911,6 +914,7 @@ window.__ModuleLoader__.load({
 
     function ConversationTable({ rows, t, fmt }) {
       const [sort, setSort] = useState({ key: 'lastAt', dir: 'desc' })
+      const [tip, setTip] = useState(null)
       const maxTokens = rows.reduce((value, row) => Math.max(value, row.totalTokens), 0)
       const sorted = useMemo(() => {
         const factor = sort.dir === 'asc' ? 1 : -1
@@ -973,11 +977,30 @@ window.__ModuleLoader__.load({
               { key: row.sessionId, className: 'dshstat-tr' },
               h(
                 'div',
-                { className: 'dshstat-name', title: row.cwd ?? row.sessionId },
+                { className: 'dshstat-name' },
                 h(
                   'div',
                   { className: 'dshstat-name-line' },
-                  h('b', null, row.title ?? t('table.untitled')),
+                  h(
+                    'b',
+                    {
+                      onMouseEnter: (event) => {
+                        const target = event.currentTarget
+                        if (target.scrollWidth <= target.clientWidth) return
+                        const rect = target.getBoundingClientRect()
+                        const width = Math.min(560, Math.max(240, window.innerWidth - 48))
+                        setTip({
+                          title: row.title ?? t('table.untitled'),
+                          cwd: row.cwd,
+                          left: Math.max(16, Math.min(rect.left, window.innerWidth - width - 16)),
+                          top: Math.min(rect.bottom + 6, window.innerHeight - 96),
+                          width,
+                        })
+                      },
+                      onMouseLeave: () => setTip(null),
+                    },
+                    row.title ?? t('table.untitled'),
+                  ),
                   row.origin === 'subagent' ? h('span', { className: 'dshstat-tag' }, t('table.subagent')) : null,
                   row.priced === false ? h('span', { className: 'dshstat-tag' }, t('table.unpriced')) : null,
                 ),
@@ -1008,6 +1031,14 @@ window.__ModuleLoader__.load({
               ),
             ),
           ),
+          tip
+            ? h(
+                'div',
+                { className: 'dshstat-tip', style: { left: `${tip.left}px`, top: `${tip.top}px`, maxWidth: `${tip.width}px` } },
+                h('b', null, tip.title),
+                tip.cwd ? h('span', null, tip.cwd) : null,
+              )
+            : null,
         ),
       )
     }
