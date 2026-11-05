@@ -200,11 +200,11 @@ window.__ModuleLoader__.load({
 .dshstat-stack::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;transition:background .12s ease}
 .dshstat-col[data-hover="true"] .dshstat-stack::after,.dshstat-col[data-on="true"] .dshstat-stack::after{background:var(--dsw-alias-interactive-bg-hover)}
 .dshstat-axis{display:flex;justify-content:space-between;color:var(--dsw-alias-label-secondary);font-size:11px;margin-top:14px;font-variant-numeric:tabular-nums}
-.dshstat-tip{position:absolute;z-index:3;min-width:152px;padding:8px 10px;border-radius:9px;border:1px solid var(--dsw-alias-border-l3);background:var(--dsw-alias-bg-layer-1);box-shadow:0 8px 24px #0000001f,0 1px 2px #00000014;pointer-events:none;font-size:11.5px;line-height:1.65;color:var(--dsw-alias-label-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
-.dshstat-tip-head{margin-bottom:3px;font-weight:600}
-.dshstat-tip-row{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--dsw-alias-label-secondary)}
-.dshstat-tip-row b{color:var(--dsw-alias-label-primary);font-weight:500}
-.dshstat-tip-total{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:5px;padding-top:5px;border-top:1px solid var(--dsw-alias-border-l1)}
+.dshstat-daytip{position:absolute;z-index:3;min-width:152px;padding:8px 10px;border-radius:9px;border:1px solid var(--dsw-alias-border-l3);background:var(--dsw-alias-bg-layer-1);box-shadow:0 8px 24px #0000001f,0 1px 2px #00000014;pointer-events:none;font-size:11.5px;line-height:1.65;color:var(--dsw-alias-label-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dshstat-daytip-head{margin-bottom:3px;font-weight:600}
+.dshstat-daytip-row{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--dsw-alias-label-secondary)}
+.dshstat-daytip-row b{color:var(--dsw-alias-label-primary);font-weight:500}
+.dshstat-daytip-total{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:5px;padding-top:5px;border-top:1px solid var(--dsw-alias-border-l1)}
 .dshstat-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--dsw-alias-border-l1);display:flex;gap:18px;flex-wrap:wrap;font-size:12px;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-secondary)}
 .dshstat-detail b{color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-split{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px}
@@ -612,7 +612,7 @@ window.__ModuleLoader__.load({
       const tipRow = (label, value, color) =>
         h(
           'div',
-          { className: 'dshstat-tip-row' },
+          { className: 'dshstat-daytip-row' },
           h('span', null, h('i', { className: 'dshstat-dot', style: { background: color } }), label),
           h('b', null, fmt.compact(value)),
         )
@@ -728,20 +728,20 @@ window.__ModuleLoader__.load({
                     ? h(
                         'div',
                         {
-                          className: 'dshstat-tip',
+                          className: 'dshstat-daytip',
                           style: {
                             left: `clamp(88px, ${((hover + 0.5) / series.length) * 100}%, calc(100% - 88px))`,
                             top: `${(1 - tipRatio) * 100}%`,
                             transform: `translate(-50%, ${tipAbove ? 'calc(-100% - 10px)' : '10px'})`,
                           },
                         },
-                        h('div', { className: 'dshstat-tip-head' }, fmt.dayLong(tip.day)),
+                        h('div', { className: 'dshstat-daytip-head' }, fmt.dayLong(tip.day)),
                         tipRow(t('timeline.legendInput'), tip.tokens?.input ?? 0, 'var(--dshstat-blue)'),
                         tipRow(t('timeline.legendOutput'), tip.tokens?.output ?? 0, 'var(--dshstat-green)'),
                         tipRow(t('timeline.legendCache'), tip.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
                         h(
                           'div',
-                          { className: 'dshstat-tip-total' },
+                          { className: 'dshstat-daytip-total' },
                           h('span', null, t('timeline.tipTotal'), ' ', h('b', null, fmt.compact(sumBuckets(tip.tokens)))),
                           h('b', null, fmt.usd(tip.cost)),
                         ),
