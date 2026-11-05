@@ -161,7 +161,7 @@ window.__ModuleLoader__.load({
 
     const CSS = `
 .dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:color-mix(in srgb,var(--dsw-static-blue-500,#3b82f6) 45%,transparent);--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
-.dshstat-inner{max-width:1160px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;display:flex;flex-direction:column;gap:18px}
+.dshstat-inner{max-width:960px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;display:flex;flex-direction:column;gap:18px}
 .dshstat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .dshstat-title{margin:0;font-size:20px;font-weight:500;line-height:28px}
 .dshstat-meta{margin-top:6px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:18px;font-variant-numeric:tabular-nums}
@@ -242,7 +242,7 @@ window.__ModuleLoader__.load({
 .dshstat-state{padding:48px 8px;text-align:center;color:var(--dsw-alias-label-secondary);font-size:13px}
 .dshstat-spin{display:inline-block;width:12px;height:12px;border:2px solid var(--dsw-alias-border-l2);border-top-color:var(--dsw-alias-brand-primary);border-radius:50%;animation:dshstat-spin .8s linear infinite;vertical-align:-2px;margin-right:7px}
 @keyframes dshstat-spin{to{transform:rotate(360deg)}}
-@media (max-width:1040px){.dshstat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dshstat-split{grid-template-columns:minmax(0,1fr)}.dshstat-inner{padding:20px 18px 48px}.dshstat-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.dshstat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dshstat-split{grid-template-columns:minmax(0,1fr)}.dshstat-inner{padding:20px 18px 48px}.dshstat-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:720px){.dshstat-thead,.dshstat-tr{grid-template-columns:minmax(0,2.2fr) minmax(80px,1fr) minmax(96px,1.1fr) minmax(72px,0.9fr);gap:12px}.dshstat-cpu-col{display:none}}
 `
 
