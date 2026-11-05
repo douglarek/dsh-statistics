@@ -160,7 +160,7 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:color-mix(in srgb,var(--dsw-static-blue-500,#3b82f6) 45%,transparent)}
+.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:color-mix(in srgb,var(--dsw-static-blue-500,#3b82f6) 45%,transparent);--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
 .dshstat-inner{max-width:1160px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;display:flex;flex-direction:column;gap:18px}
 .dshstat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .dshstat-title{margin:0;font-size:20px;font-weight:500;line-height:28px}
@@ -180,7 +180,7 @@ window.__ModuleLoader__.load({
 .dshstat-label{font-size:11.5px;color:var(--dsw-alias-label-secondary);letter-spacing:.02em}
 .dshstat-value{margin-top:6px;font-size:25px;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dshstat-hint{margin-top:5px;font-size:11.5px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums}
-.dshstat-bar{height:6px;border-radius:99px;background:var(--dsw-alias-bg-layer-2);overflow:hidden;margin-top:10px}
+.dshstat-bar{height:6px;border-radius:99px;background:var(--dshstat-track);overflow:hidden;margin-top:10px}
 .dshstat-bar span{display:block;height:100%;border-radius:99px;background:var(--dshstat-blue);transition:width .25s ease,background .2s ease}
 .dshstat-bar span[data-state="ok"]{background:var(--dshstat-green)}
 .dshstat-bar span[data-state="warn"]{background:var(--dshstat-amber)}
@@ -219,7 +219,7 @@ window.__ModuleLoader__.load({
 .dshstat-model-id{font-family:var(--dsw-font-mono,ui-monospace,Menlo,monospace);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dshstat-model-num{color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dshstat-table{display:flex;flex-direction:column}
-.dshstat-thead,.dshstat-tr{display:grid;grid-template-columns:minmax(0,2.3fr) 108px minmax(0,1.15fr) 92px 96px;gap:14px;align-items:center;padding:8px 10px;border-radius:8px}
+.dshstat-thead,.dshstat-tr{display:grid;grid-template-columns:minmax(0,1fr) 96px 136px 88px 64px;gap:16px;align-items:center;padding:9px 12px;border-radius:8px}
 .dshstat-thead{color:var(--dsw-alias-label-secondary);font-size:11.5px;border-bottom:1px solid var(--dsw-alias-border-l1);border-radius:0}
 .dshstat-th{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:inline-flex;align-items:center;gap:4px}
 .dshstat-th[data-num="true"]{justify-content:flex-end;width:100%;text-align:right}
@@ -227,19 +227,20 @@ window.__ModuleLoader__.load({
 .dshstat-tr:hover{background:var(--dsw-alias-bg-layer-2)}
 .dshstat-tr+.dshstat-tr{border-top:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 55%,transparent)}
 .dshstat-name{min-width:0}
-.dshstat-name b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dshstat-name span{display:block;font-size:11px;color:var(--dsw-alias-label-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.dshstat-name-line{display:flex;align-items:center;gap:6px;min-width:0}
+.dshstat-name-line b{min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dshstat-name-sub{display:block;font-size:11px;color:var(--dsw-alias-label-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
 .dshstat-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .dshstat-tok{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.dshstat-tokbar{width:100%;height:3px;border-radius:99px;background:var(--dsw-alias-bg-layer-2);overflow:hidden}
+.dshstat-tokbar{width:72px;height:4px;border-radius:99px;background:var(--dshstat-track);overflow:hidden}
 .dshstat-tokbar span{display:block;height:100%;background:linear-gradient(90deg,var(--dshstat-blue),var(--dshstat-indigo));border-radius:99px}
-.dshstat-tag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:4px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);font-size:10px;vertical-align:middle}
+.dshstat-tag{display:inline-flex;align-items:center;flex:none;height:16px;padding:0 5px;border-radius:4px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);font-size:10px;line-height:1}
 .dshstat-notice{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;padding:10px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;background:var(--dsw-alias-bg-layer-1)}
 .dshstat-state{padding:48px 8px;text-align:center;color:var(--dsw-alias-label-secondary);font-size:13px}
 .dshstat-spin{display:inline-block;width:12px;height:12px;border:2px solid var(--dsw-alias-border-l2);border-top-color:var(--dsw-alias-brand-primary);border-radius:50%;animation:dshstat-spin .8s linear infinite;vertical-align:-2px;margin-right:7px}
 @keyframes dshstat-spin{to{transform:rotate(360deg)}}
 @media (max-width:1040px){.dshstat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dshstat-split{grid-template-columns:minmax(0,1fr)}.dshstat-inner{padding:20px 18px 48px}.dshstat-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:720px){.dshstat-thead,.dshstat-tr{grid-template-columns:minmax(0,1.8fr) 84px minmax(0,1fr) 74px}.dshstat-cpu-col{display:none}}
+@media (max-width:720px){.dshstat-thead,.dshstat-tr{grid-template-columns:minmax(0,1fr) 84px 118px 78px;gap:12px}.dshstat-cpu-col{display:none}}
 `
 
     function emptyBuckets() {
@@ -961,10 +962,10 @@ window.__ModuleLoader__.load({
             'div',
             { className: 'dshstat-thead' },
             h('div', null, header('title', t('table.conversation'), false)),
-            h('div', null, header('lastAt', t('table.lastActive'), false)),
-            h('div', { style: { textAlign: 'right' } }, header('totalTokens', t('table.tokens'), true)),
-            h('div', { style: { textAlign: 'right' } }, header('cost', t('table.cost'), true)),
-            h('div', { className: 'dshstat-cpu-col', style: { textAlign: 'right' } }, header('cpu', t('table.cpu'), true)),
+            h('div', null, header('lastAt', t('table.lastActive'), true)),
+            h('div', null, header('totalTokens', t('table.tokens'), true)),
+            h('div', null, header('cost', t('table.cost'), true)),
+            h('div', { className: 'dshstat-cpu-col' }, header('cpu', t('table.cpu'), true)),
           ),
           sorted.map((row) =>
             h(
@@ -974,13 +975,17 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'dshstat-name', title: row.cwd ?? row.sessionId },
                 h(
-                  'b',
-                  null,
-                  row.title ?? t('table.untitled'),
+                  'div',
+                  { className: 'dshstat-name-line' },
+                  h('b', null, row.title ?? t('table.untitled')),
                   row.origin === 'subagent' ? h('span', { className: 'dshstat-tag' }, t('table.subagent')) : null,
                   row.priced === false ? h('span', { className: 'dshstat-tag' }, t('table.unpriced')) : null,
                 ),
-                h('span', null, [row.workspace, row.model].filter(Boolean).join(' · ') || row.sessionId),
+                h(
+                  'span',
+                  { className: 'dshstat-name-sub' },
+                  [row.workspace, row.model].filter(Boolean).join(' · ') || row.sessionId,
+                ),
               ),
               h('div', { className: 'dshstat-num' }, row.lastAt ? fmt.date(row.lastAt) : '—'),
               h(
