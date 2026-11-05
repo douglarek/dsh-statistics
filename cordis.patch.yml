@@ -27,6 +27,12 @@
             input: 0.3
             output: 1.2
             cacheRead: 0.006
+          # The official account route reports the same flash model under the
+          # bare id `deepseek-flash`, with no version prefix.
+          - match: '*deepseek-flash*'
+            input: 0.3
+            output: 1.2
+            cacheRead: 0.006
           - match: 'deepseek-v4-pro*'
             input: 1.32
             output: 3.96

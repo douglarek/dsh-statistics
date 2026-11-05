@@ -24,9 +24,11 @@ const SNAPSHOT_PATH = '/api/statistics/snapshot'
 
 /** Rate card used when the profile patch sets none; USD per 1M tokens. */
 const DEFAULT_RATES = [
-  { match: 'deepseek-v4.1-flash*', input: 0.14, output: 0.28, cacheRead: 0.0028 },
-  { match: 'deepseek-v4-flash*', input: 0.14, output: 0.28, cacheRead: 0.0028 },
-  { match: 'deepseek-v4-pro*', input: 0.435, output: 0.87, cacheRead: 0.003625 },
+  { match: 'deepseek-v4.1-flash*', input: 0.3, output: 1.2, cacheRead: 0.006 },
+  { match: 'deepseek-v4-flash*', input: 0.3, output: 1.2, cacheRead: 0.006 },
+  { match: '*deepseek-flash*', input: 0.3, output: 1.2, cacheRead: 0.006 },
+  { match: 'deepseek-v4-pro*', input: 1.32, output: 3.96, cacheRead: 0.044 },
+  { match: '*glm-5.3-flash*', input: 0.15, output: 0.5, cacheRead: 0.03 },
   { match: '*deepseek*', input: 0.27, output: 1.1, cacheRead: 0.07 },
 ]
 
