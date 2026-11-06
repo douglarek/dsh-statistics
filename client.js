@@ -195,17 +195,16 @@ window.__ModuleLoader__.load({
 .dshstat-legend{display:flex;align-items:center;gap:8px;color:var(--dsw-alias-label-secondary);font-size:11.5px;flex-wrap:wrap}
 .dshstat-legend>span{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:99px;border:1px solid var(--dsw-alias-border-l1);white-space:nowrap}
 .dshstat-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
-.dshstat-plot{display:flex;align-items:stretch;gap:10px;height:168px}
-.dshstat-scale{position:relative;flex:none;min-width:92px;height:100%;color:var(--dsw-alias-label-tertiary);font-size:10.5px;line-height:1;font-variant-numeric:tabular-nums}
-.dshstat-scale span{position:absolute;right:0;white-space:nowrap}
-.dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:0;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2);border-top:1px solid var(--dsw-alias-border-l1);border-right:1px solid var(--dsw-alias-border-l1)}
+.dshstat-plot{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-rows:168px auto;grid-template-areas:'l c rq cs' '. a . .';column-gap:0}
+.dshstat-scale{grid-area:l;position:relative;flex:none;min-width:40px;height:100%;color:var(--dsw-alias-label-tertiary);font-size:10.5px;line-height:1;font-variant-numeric:tabular-nums}
+.dshstat-scale span{position:absolute;right:10px;white-space:nowrap}
+.dshstat-chart{grid-area:c;min-width:0;display:flex;align-items:stretch;gap:0;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2);border-top:1px solid var(--dsw-alias-border-l1)}
 .dshstat-overlay{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
 .dshstat-costline{fill:none;stroke:var(--dshstat-cost);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .dshstat-requestline{fill:none;stroke:var(--dshstat-request);stroke-width:1.8;stroke-dasharray:5 4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.9}
-.dshstat-scale-r{min-width:92px}
-.dshstat-scale-r span{right:auto;left:0}
-.dshstat-scale-r span{display:flex;gap:8px;font-variant-numeric:tabular-nums}
-.dshstat-scale-r i{font-style:normal}
+.dshstat-scale-req{grid-area:rq;min-width:58px;border-left:1px solid var(--dsw-alias-border-l1)}
+.dshstat-scale-cost{grid-area:cs;min-width:68px;border-left:1px solid var(--dsw-alias-border-l1)}
+.dshstat-scale-req span,.dshstat-scale-cost span{right:auto;left:10px}
 .dshstat-headtools{display:flex;align-items:center;justify-content:flex-end;gap:10px 20px;flex-wrap:wrap}
 .dshstat-inline-stats{display:flex;align-items:center;gap:18px;font-size:12px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums}
 .dshstat-inline-stats b{margin-left:6px;color:var(--dsw-alias-label-primary);font-weight:600}
@@ -221,7 +220,7 @@ window.__ModuleLoader__.load({
 .dshstat-stack{position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%;width:calc(100% - 6px);max-width:40px;margin:0 auto;border-radius:4px 4px 0 0;overflow:hidden}
 .dshstat-stack::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;transition:background .12s ease}
 .dshstat-col[data-hover="true"] .dshstat-stack::after,.dshstat-col[data-on="true"] .dshstat-stack::after{background:var(--dsw-alias-interactive-bg-hover)}
-.dshstat-axis{display:flex;justify-content:space-between;color:var(--dsw-alias-label-secondary);font-size:11px;margin-top:14px;font-variant-numeric:tabular-nums}
+.dshstat-axis{grid-area:a;display:flex;justify-content:space-between;color:var(--dsw-alias-label-secondary);font-size:11px;margin-top:10px;font-variant-numeric:tabular-nums}
 .dshstat-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--dsw-alias-border-l1);display:flex;gap:18px;flex-wrap:wrap;font-size:12px;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-secondary)}
 .dshstat-detail b{color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-split{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px}
@@ -832,23 +831,21 @@ window.__ModuleLoader__.load({
                 ),
                 h(
                   'div',
-                  { className: 'dshstat-scale dshstat-scale-r', 'aria-hidden': 'true' },
-                  TICKS.map((pct) =>
-                    h(
-                      'span',
-                      { key: pct, style: tickStyle(pct) },
-                      h('i', null, fmt.compact((requestMax * (100 - pct)) / 100)),
-                      h('i', null, fmt.usd((costMax * (100 - pct)) / 100)),
-                    ),
-                  ),
+                  { className: 'dshstat-scale dshstat-scale-req', 'aria-hidden': 'true' },
+                  TICKS.map((pct) => h('span', { key: pct, style: tickStyle(pct) }, fmt.compact((requestMax * (100 - pct)) / 100))),
                 ),
-              ),
-              h(
-                'div',
-                { className: 'dshstat-axis' },
-                h('span', null, fmt.dayLabel(series[0].day)),
-                peak ? h('span', null, t('timeline.peak', { date: fmt.dayLabel(peak.day), tokens: fmt.compact(metricOf(peak)) })) : h('span'),
-                h('span', null, fmt.dayLabel(series[series.length - 1].day)),
+                h(
+                  'div',
+                  { className: 'dshstat-scale dshstat-scale-cost', 'aria-hidden': 'true' },
+                  TICKS.map((pct) => h('span', { key: pct, style: tickStyle(pct) }, fmt.usd((costMax * (100 - pct)) / 100))),
+                ),
+                h(
+                  'div',
+                  { className: 'dshstat-axis' },
+                  h('span', null, fmt.dayLabel(series[0].day)),
+                  peak ? h('span', null, t('timeline.peak', { date: fmt.dayLabel(peak.day), tokens: fmt.compact(metricOf(peak)) })) : h('span'),
+                  h('span', null, fmt.dayLabel(series[series.length - 1].day)),
+                ),
               ),
               active
                 ? h(
