@@ -25,7 +25,6 @@ window.__ModuleLoader__.load({
       'panel.rangeDays': 'Last {days} days',
       'panel.source': 'Source: {source} · {sessions} logs scanned',
       'panel.rangeLabel': 'Range',
-      'range.d1': 'Today',
       'range.d7': '7d',
       'range.d30': '30d',
       'range.d90': '90d',
@@ -101,7 +100,6 @@ window.__ModuleLoader__.load({
       'panel.rangeDays': '近 {days} 天',
       'panel.source': '数据源：{source} · 已扫描 {sessions} 份日志',
       'panel.rangeLabel': '范围',
-      'range.d1': '今天',
       'range.d7': '7 天',
       'range.d30': '30 天',
       'range.d90': '90 天',
@@ -1197,7 +1195,6 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'dshstat-seg', role: 'group', 'aria-label': t('panel.rangeLabel') },
                 [
-                  [1, t('range.d1')],
                   [7, t('range.d7')],
                   [30, t('range.d30')],
                   [90, t('range.d90')],
@@ -1255,7 +1252,7 @@ window.__ModuleLoader__.load({
 
           // A per-day chart has no temporal resolution inside a single day, so the
           // Today range shows the KPI cards, models, and conversations without it.
-          rangeDays === 1 ? null : h(Timeline, { series, t, fmt, key: `timeline-${rangeDays}` }),
+          h(Timeline, { series, t, fmt, key: `timeline-${rangeDays}` }),
 
           h(
             'div',

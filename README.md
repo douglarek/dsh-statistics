@@ -24,9 +24,8 @@ timeline, CPU activity, models, and the conversation table](docs/panel.jpg)
   system utilization, load average, core count, and memory, next to live
   per-conversation CPU attribution.
 
-Ranges: today, last 7, last 30, last 90 days, or everything (the default). The
-header reports the data source and the number of logs scanned. A single day has
-no temporal resolution to chart, so the timeline is left out of the today range.
+Ranges: last 7, last 30, last 90 days, or everything (the default). The header
+reports the data source and the number of logs scanned.
 
 ## Where the numbers come from
 
