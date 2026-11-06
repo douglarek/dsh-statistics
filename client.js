@@ -198,7 +198,7 @@ window.__ModuleLoader__.load({
 .dshstat-plot{display:flex;align-items:stretch;gap:10px;height:168px}
 .dshstat-scale{position:relative;flex:none;min-width:40px;height:100%;color:var(--dsw-alias-label-tertiary);font-size:10.5px;line-height:1;font-variant-numeric:tabular-nums}
 .dshstat-scale span{position:absolute;right:0;white-space:nowrap}
-.dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:2px;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2);border-top:1px solid var(--dsw-alias-border-l1)}
+.dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:2px;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2);border-top:1px solid var(--dsw-alias-border-l1);border-right:1px solid var(--dsw-alias-border-l1)}
 .dshstat-overlay{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
 .dshstat-costline{fill:none;stroke:var(--dshstat-cost);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .dshstat-requestline{fill:none;stroke:var(--dshstat-request);stroke-width:1.8;stroke-dasharray:5 4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.9}
@@ -215,7 +215,7 @@ window.__ModuleLoader__.load({
 .dshstat-daytip-total{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:5px;padding-top:5px;border-top:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-primary)}
 .dshstat-gridline{position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--dsw-alias-border-l1);pointer-events:none}
 .dshstat-col{flex:1 1 0;min-width:2px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;position:relative}
-.dshstat-col::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;margin-left:-0.5px;background:var(--dsw-alias-border-l1);pointer-events:none}
+.dshstat-col::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--dsw-alias-border-l1);pointer-events:none}
 .dshstat-chart[data-dense="true"] .dshstat-col::before{display:none}
 .dshstat-col[data-on="true"]::after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:min(40px,100%);bottom:-5px;height:2px;border-radius:1px;background:var(--dsw-alias-brand-primary)}
 .dshstat-stack{position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%;width:100%;max-width:40px;margin:0 auto;border-radius:4px 4px 0 0;overflow:hidden}
