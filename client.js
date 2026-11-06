@@ -6,6 +6,8 @@ window.__ModuleLoader__.load({
     const { useCallback, useEffect, useMemo, useState, useSyncExternalStore } = React
 
     const SNAPSHOT_URL = '/api/statistics/snapshot'
+    /** Snapshot payload version this panel was built against; the Host stamps its own. */
+    const SNAPSHOT_API = 2
     const NS = 'dsh-statistics'
     const PANEL_ID = 'statistics'
     const BUCKETS = ['input', 'output', 'cacheRead', 'cacheWrite']
@@ -16,6 +18,7 @@ window.__ModuleLoader__.load({
       'panel.refresh': 'Refresh',
       'panel.autoRefresh': 'Auto refresh',
       'panel.updated': 'Updated {time}',
+      'panel.staleHost': 'The Host half is still an older build (payload v{host}, this panel needs v{want}); restart DSH to load the new code.',
       'panel.empty': 'No conversation logs with token usage were found yet.',
       'panel.loading': 'Reading conversation logs…',
       'panel.failed': 'Could not read the statistics: {message}',
@@ -91,6 +94,7 @@ window.__ModuleLoader__.load({
       'panel.refresh': '刷新',
       'panel.autoRefresh': '自动刷新',
       'panel.updated': '更新于 {time}',
+      'panel.staleHost': '宿主插件仍是旧版本（数据 v{host}，面板需要 v{want}）：重启 DSH 后新数据才会出现。',
       'panel.empty': '尚未找到带 token 用量的会话日志。',
       'panel.loading': '正在读取会话日志…',
       'panel.failed': '无法读取统计数据：{message}',
@@ -645,7 +649,7 @@ window.__ModuleLoader__.load({
       return { top: `${pct}%`, transform: 'translateY(-50%)' }
     }
 
-    function Timeline({ series, t, fmt }) {
+    function Timeline({ series, t, fmt, requestsAvailable = true }) {
       const [selected, setSelected] = useState(null)
       const [hover, setHover] = useState(null)
 
@@ -668,12 +672,15 @@ window.__ModuleLoader__.load({
           costMax > 0 ? 100 - ((entry.cost ?? 0) / costMax) * 100 : 100,
         ]),
       )
-      const requestPath = splinePath(
-        series.map((entry, index) => [
-          ((index + 0.5) / Math.max(series.length, 1)) * 100,
-          requestMax > 0 ? 100 - ((entry.requests ?? 0) / requestMax) * 100 : 100,
-        ]),
-      )
+      const requestPath =
+        requestsAvailable && requestMax > 0
+          ? splinePath(
+              series.map((entry, index) => [
+                ((index + 0.5) / Math.max(series.length, 1)) * 100,
+                100 - ((entry.requests ?? 0) / requestMax) * 100,
+              ]),
+            )
+          : null
       const hovered = hover !== null && series[hover.index] ? series[hover.index] : null
 
       const showDay = (event, index, entry) => {
@@ -729,7 +736,7 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'dshstat-inline-stats' },
               h('span', null, t('timeline.perMillion'), h('b', null, totalTokens > 0 ? fmt.usd(perMillion) : '—')),
-              h('span', null, t('timeline.totalRequests'), h('b', null, fmt.int(totalRequests))),
+              requestsAvailable ? h('span', null, t('timeline.totalRequests'), h('b', null, fmt.int(totalRequests))) : null,
             ),
             h(
               'div',
@@ -738,7 +745,7 @@ window.__ModuleLoader__.load({
               chip(t('timeline.legendOutput'), 'var(--dshstat-green)'),
               chip(t('timeline.legendCache'), 'var(--dshstat-cache)'),
               chip(t('timeline.legendCost'), 'var(--dshstat-cost)'),
-              chip(t('timeline.legendRequests'), 'var(--dshstat-request)'),
+              requestsAvailable ? chip(t('timeline.legendRequests'), 'var(--dshstat-request)') : null,
             ),
           ),
         ),
@@ -817,7 +824,7 @@ window.__ModuleLoader__.load({
                         tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
                         tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
                         tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-cost)', fmt.usd),
-                        tipRow(t('timeline.legendRequests'), hovered.requests ?? 0, 'var(--dshstat-request)'),
+                        requestsAvailable ? tipRow(t('timeline.legendRequests'), hovered.requests ?? 0, 'var(--dshstat-request)') : null,
                         h(
                           'div',
                           { className: 'dshstat-daytip-total' },
@@ -827,11 +834,13 @@ window.__ModuleLoader__.load({
                       )
                     : null,
                 ),
-                h(
-                  'div',
-                  { className: 'dshstat-scale dshstat-scale-req', 'aria-hidden': 'true' },
-                  TICKS.map((pct) => h('span', { key: pct, style: tickStyle(pct) }, fmt.compact((requestMax * (100 - pct)) / 100))),
-                ),
+                requestsAvailable
+                  ? h(
+                      'div',
+                      { className: 'dshstat-scale dshstat-scale-req', 'aria-hidden': 'true' },
+                      TICKS.map((pct) => h('span', { key: pct, style: tickStyle(pct) }, fmt.compact((requestMax * (100 - pct)) / 100))),
+                    )
+                  : null,
                 h(
                   'div',
                   { className: 'dshstat-scale dshstat-scale-cost', 'aria-hidden': 'true' },
@@ -1161,6 +1170,8 @@ window.__ModuleLoader__.load({
 
       const totals = view?.totals ?? { input: 0, output: 0, cacheRead: 0, tokens: 0, cost: 0, turns: 0, steps: 0, toolCalls: 0 }
       const hasWarnings = (data?.warnings ?? []).length > 0
+      const hostApi = data?.api ?? 1
+      const staleHost = Boolean(data) && hostApi !== SNAPSHOT_API
 
       return h(
         'div',
@@ -1208,6 +1219,10 @@ window.__ModuleLoader__.load({
             ),
           ),
 
+          staleHost
+            ? h('div', { className: 'dshstat-notice' }, t('panel.staleHost', { host: hostApi, want: SNAPSHOT_API }))
+            : null,
+
           hasWarnings
             ? h('div', { className: 'dshstat-notice' }, data.warnings.join(' · '))
             : null,
@@ -1252,7 +1267,7 @@ window.__ModuleLoader__.load({
 
           // A per-day chart has no temporal resolution inside a single day, so the
           // Today range shows the KPI cards, models, and conversations without it.
-          h(Timeline, { series, t, fmt, key: `timeline-${rangeDays}` }),
+          h(Timeline, { series, t, fmt, requestsAvailable: !staleHost, key: `timeline-${rangeDays}` }),
 
           h(
             'div',
