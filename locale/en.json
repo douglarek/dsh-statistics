@@ -44,10 +44,11 @@
     "daySummary": "{tokens} tokens · {cost} · {sessions} conversations",
     "peak": "Peak day {date} · {tokens}",
     "sessions": "{count} conversations",
-    "average": "Average",
     "totalTokens": "Total tokens",
     "totalCost": "Total cost",
-    "perMillion": "Per 1M tokens"
+    "perMillion": "Per 1M tokens",
+    "legendRequests": "Requests",
+    "totalRequests": "Total requests"
   },
   "cpu": {
     "title": "CPU activity",

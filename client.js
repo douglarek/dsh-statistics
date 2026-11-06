@@ -55,7 +55,8 @@ window.__ModuleLoader__.load({
       'timeline.peak': 'Peak {date} · {tokens}',
       'timeline.sessions': '{count} conversations',
       'timeline.legendCost': 'Cost',
-      'timeline.average': 'Average',
+      'timeline.legendRequests': 'Requests',
+      'timeline.totalRequests': 'Total requests',
       'timeline.totalTokens': 'Total tokens',
       'timeline.totalCost': 'Total cost',
       'timeline.perMillion': 'Per 1M tokens',
@@ -132,7 +133,8 @@ window.__ModuleLoader__.load({
       'timeline.peak': '峰值 {date} · {tokens}',
       'timeline.sessions': '{count} 个对话',
       'timeline.legendCost': '成本',
-      'timeline.average': '平均值',
+      'timeline.legendRequests': '请求数',
+      'timeline.totalRequests': '总请求数',
       'timeline.totalTokens': 'Token 总量',
       'timeline.totalCost': '总成本',
       'timeline.perMillion': '每 1M Token',
@@ -166,7 +168,7 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:var(--dsw-static-amber-600,#dd8629);--dshstat-cost:#14b8a6;--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
+.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:var(--dsw-static-amber-600,#dd8629);--dshstat-cost:#14b8a6;--dshstat-request:#8b5cf6;--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
 .dshstat-inner{max-width:960px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;display:flex;flex-direction:column;gap:18px}
 .dshstat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .dshstat-title{margin:0;font-size:20px;font-weight:500;line-height:28px}
@@ -202,8 +204,10 @@ window.__ModuleLoader__.load({
 .dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:2px;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dshstat-overlay{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
 .dshstat-costline{fill:none;stroke:var(--dshstat-cost);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
-.dshstat-avgline{position:absolute;left:0;right:0;border-top:1px dashed var(--dsw-alias-label-tertiary);pointer-events:none;opacity:.55;z-index:2}
-.dshstat-scale-r{align-items:flex-start}
+.dshstat-requestline{fill:none;stroke:var(--dshstat-request);stroke-width:1.8;stroke-dasharray:5 4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.9}
+.dshstat-scale-r{align-items:flex-start;min-width:86px}
+.dshstat-scale-r span{display:flex;gap:8px;font-variant-numeric:tabular-nums}
+.dshstat-scale-r i{font-style:normal}
 .dshstat-summary{display:flex;flex-wrap:wrap;gap:6px 22px;margin:2px 0 14px;font-size:12px;color:var(--dsw-alias-label-secondary)}
 .dshstat-summary b{margin-left:6px;color:var(--dsw-alias-label-primary);font-weight:600;font-variant-numeric:tabular-nums}
 .dshstat-daytip{position:fixed;z-index:60;min-width:168px;padding:8px 10px;border-radius:9px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 28px rgba(0,0,0,.18);pointer-events:none;font-size:11.5px;line-height:1.6;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -501,7 +505,7 @@ window.__ModuleLoader__.load({
       const series = []
       for (let time = start; time <= end; time += 86_400_000) {
         const key = dayKeyOf(time)
-        series.push(byDay.get(key) ?? { day: key, tokens: emptyBuckets(), cost: 0, sessions: 0, turns: 0 })
+        series.push(byDay.get(key) ?? { day: key, tokens: emptyBuckets(), cost: 0, sessions: 0, turns: 0, requests: 0 })
       }
       return series
     }
@@ -635,7 +639,8 @@ window.__ModuleLoader__.load({
       const costMax = series.reduce((value, entry) => Math.max(value, entry.cost ?? 0), 0)
       const totalTokens = series.reduce((sum, entry) => sum + sumBuckets(entry.tokens), 0)
       const totalCost = series.reduce((sum, entry) => sum + (entry.cost ?? 0), 0)
-      const average = series.length > 0 ? series.reduce((sum, entry) => sum + metricOf(entry), 0) / series.length : 0
+      const requestMax = series.reduce((value, entry) => Math.max(value, entry.requests ?? 0), 0)
+      const totalRequests = series.reduce((sum, entry) => sum + (entry.requests ?? 0), 0)
       const perMillion = totalTokens > 0 ? totalCost / (totalTokens / 1_000_000) : 0
 
       const activeIndex = selected !== null && series[selected] ? selected : series.length - 1
@@ -648,7 +653,12 @@ window.__ModuleLoader__.load({
           costMax > 0 ? 100 - ((entry.cost ?? 0) / costMax) * 100 : 100,
         ]),
       )
-      const averageY = max > 0 ? 100 - (average / max) * 100 : 100
+      const requestPath = splinePath(
+        series.map((entry, index) => [
+          ((index + 0.5) / Math.max(series.length, 1)) * 100,
+          requestMax > 0 ? 100 - ((entry.requests ?? 0) / requestMax) * 100 : 100,
+        ]),
+      )
       const hovered = hover !== null && series[hover.index] ? series[hover.index] : null
 
       const segments = (entry) => {
@@ -696,7 +706,7 @@ window.__ModuleLoader__.load({
             chip(t('timeline.legendOutput'), 'var(--dshstat-green)'),
             chip(t('timeline.legendCache'), 'var(--dshstat-cache)'),
             chip(t('timeline.legendCost'), 'var(--dshstat-cost)'),
-            chip(t('timeline.average'), 'var(--dsw-alias-label-tertiary)', true),
+            chip(t('timeline.legendRequests'), 'var(--dshstat-request)'),
           ),
         ),
         series.length === 0
@@ -710,6 +720,7 @@ window.__ModuleLoader__.load({
                 h('span', null, t('timeline.totalTokens'), h('b', null, fmt.compact(totalTokens))),
                 h('span', null, t('timeline.totalCost'), h('b', null, fmt.usd(totalCost))),
                 h('span', null, t('timeline.perMillion'), h('b', null, totalTokens > 0 ? fmt.usd(perMillion) : '—')),
+                h('span', null, t('timeline.totalRequests'), h('b', null, fmt.int(totalRequests))),
               ),
               h(
                 'div',
@@ -727,7 +738,7 @@ window.__ModuleLoader__.load({
                   max > 0 ? h('div', { className: 'dshstat-gridline', style: { top: '25%' } }) : null,
                   max > 0 ? h('div', { className: 'dshstat-gridline' }) : null,
                   max > 0 ? h('div', { className: 'dshstat-gridline', style: { top: '75%' } }) : null,
-                  h('div', { className: 'dshstat-avgline', style: { top: `${averageY}%` } }),
+
                   h(
                     'svg',
                     {
@@ -737,6 +748,7 @@ window.__ModuleLoader__.load({
                       'aria-hidden': true,
                     },
                     costPath ? h('path', { className: 'dshstat-costline', d: costPath }) : null,
+                    requestPath ? h('path', { className: 'dshstat-requestline', d: requestPath }) : null,
                   ),
                   series.map((entry, index) =>
                     h(
@@ -784,6 +796,7 @@ window.__ModuleLoader__.load({
                         tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
                         tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
                         tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-cost)'),
+                        tipRow(t('timeline.legendRequests'), hovered.requests ?? 0, 'var(--dshstat-request)'),
                         h(
                           'div',
                           { className: 'dshstat-daytip-total' },
@@ -796,9 +809,9 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { className: 'dshstat-scale dshstat-scale-r', 'aria-hidden': 'true' },
-                  h('span', null, fmt.usd(costMax)),
-                  h('span', null, fmt.usd(costMax / 2)),
-                  h('span', null, '$0'),
+                  h('span', null, h('i', null, fmt.compact(requestMax)), h('i', null, fmt.usd(costMax))),
+                  h('span', null, h('i', null, fmt.compact(requestMax / 2)), h('i', null, fmt.usd(costMax / 2))),
+                  h('span', null, h('i', null, '0'), h('i', null, '$0')),
                 ),
               ),
               h(
