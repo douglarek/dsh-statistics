@@ -196,12 +196,14 @@ window.__ModuleLoader__.load({
 .dshstat-legend>span{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:99px;border:1px solid var(--dsw-alias-border-l1);white-space:nowrap}
 .dshstat-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
 .dshstat-plot{display:flex;align-items:stretch;gap:10px;height:168px}
-.dshstat-scale{flex:none;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;min-width:38px;color:var(--dsw-alias-label-tertiary);font-size:10.5px;line-height:1;font-variant-numeric:tabular-nums}
-.dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:2px;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dshstat-scale{position:relative;flex:none;min-width:40px;height:100%;color:var(--dsw-alias-label-tertiary);font-size:10.5px;line-height:1;font-variant-numeric:tabular-nums}
+.dshstat-scale span{position:absolute;right:0;white-space:nowrap}
+.dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:2px;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2);border-top:1px solid var(--dsw-alias-border-l1)}
 .dshstat-overlay{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
 .dshstat-costline{fill:none;stroke:var(--dshstat-cost);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .dshstat-requestline{fill:none;stroke:var(--dshstat-request);stroke-width:1.8;stroke-dasharray:5 4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.9}
-.dshstat-scale-r{align-items:flex-start;min-width:86px}
+.dshstat-scale-r{min-width:92px}
+.dshstat-scale-r span{right:auto;left:0}
 .dshstat-scale-r span{display:flex;gap:8px;font-variant-numeric:tabular-nums}
 .dshstat-scale-r i{font-style:normal}
 .dshstat-headtools{display:flex;align-items:center;justify-content:flex-end;gap:10px 20px;flex-wrap:wrap}
@@ -213,7 +215,7 @@ window.__ModuleLoader__.load({
 .dshstat-daytip-total{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:5px;padding-top:5px;border-top:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-primary)}
 .dshstat-gridline{position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--dsw-alias-border-l1);pointer-events:none}
 .dshstat-col{flex:1 1 0;min-width:2px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;position:relative}
-.dshstat-col::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;margin-left:-0.5px;background:var(--dsw-alias-border-l2);pointer-events:none}
+.dshstat-col::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;margin-left:-0.5px;background:var(--dsw-alias-border-l1);pointer-events:none}
 .dshstat-chart[data-dense="true"] .dshstat-col::before{display:none}
 .dshstat-col[data-on="true"]::after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:min(40px,100%);bottom:-5px;height:2px;border-radius:1px;background:var(--dsw-alias-brand-primary)}
 .dshstat-stack{position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%;width:100%;max-width:40px;margin:0 auto;border-radius:4px 4px 0 0;overflow:hidden}
@@ -629,16 +631,33 @@ window.__ModuleLoader__.load({
       return path
     }
 
+    function niceMax(value, steps = 4) {
+      if (!Number.isFinite(value) || value <= 0) return 0
+      const raw = value / steps
+      const magnitude = 10 ** Math.floor(Math.log10(raw))
+      const normalized = raw / magnitude
+      const step = (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 2.5 ? 2.5 : normalized <= 5 ? 5 : 10) * magnitude
+      return step * steps
+    }
+
+    const TICKS = [0, 25, 50, 75, 100]
+
+    function tickStyle(pct) {
+      if (pct === 0) return { top: 0, transform: 'none' }
+      if (pct === 100) return { top: '100%', transform: 'translateY(-100%)' }
+      return { top: `${pct}%`, transform: 'translateY(-50%)' }
+    }
+
     function Timeline({ series, t, fmt }) {
       const [selected, setSelected] = useState(null)
       const [hover, setHover] = useState(null)
 
       const metricOf = (entry) => sumBuckets(entry.tokens)
-      const max = series.reduce((value, entry) => Math.max(value, metricOf(entry)), 0)
-      const costMax = series.reduce((value, entry) => Math.max(value, entry.cost ?? 0), 0)
+      const max = niceMax(series.reduce((value, entry) => Math.max(value, metricOf(entry)), 0))
+      const costMax = niceMax(series.reduce((value, entry) => Math.max(value, entry.cost ?? 0), 0))
       const totalTokens = series.reduce((sum, entry) => sum + sumBuckets(entry.tokens), 0)
       const totalCost = series.reduce((sum, entry) => sum + (entry.cost ?? 0), 0)
-      const requestMax = series.reduce((value, entry) => Math.max(value, entry.requests ?? 0), 0)
+      const requestMax = niceMax(series.reduce((value, entry) => Math.max(value, entry.requests ?? 0), 0))
       const totalRequests = series.reduce((sum, entry) => sum + (entry.requests ?? 0), 0)
       const perMillion = totalTokens > 0 ? totalCost / (totalTokens / 1_000_000) : 0
 
@@ -659,6 +678,14 @@ window.__ModuleLoader__.load({
         ]),
       )
       const hovered = hover !== null && series[hover.index] ? series[hover.index] : null
+
+      const showDay = (event, index, entry) => {
+        if (sumBuckets(entry.tokens) === 0 && (entry.requests ?? 0) === 0) {
+          setHover(null)
+          return
+        }
+        setHover({ index, x: event.clientX, y: event.clientY })
+      }
 
       const segments = (entry) => {
         const tokens = entry.tokens ?? emptyBuckets()
@@ -729,9 +756,7 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { className: 'dshstat-scale', 'aria-hidden': 'true' },
-                  h('span', null, fmt.compact(max)),
-                  h('span', null, fmt.compact(max / 2)),
-                  h('span', null, '0'),
+                  TICKS.map((pct) => h('span', { key: pct, style: tickStyle(pct) }, fmt.compact((max * (100 - pct)) / 100))),
                 ),
                 h(
                   'div',
@@ -765,8 +790,8 @@ window.__ModuleLoader__.load({
                           sessions: entry.sessions ?? 0,
                           turns: entry.turns ?? 0,
                         }),
-                        onMouseEnter: (event) => setHover({ index, x: event.clientX, y: event.clientY }),
-                        onMouseMove: (event) => setHover({ index, x: event.clientX, y: event.clientY }),
+                        onMouseEnter: (event) => showDay(event, index, entry),
+                        onMouseMove: (event) => showDay(event, index, entry),
                         onMouseLeave: () => setHover(null),
                         onClick: () => setSelected(index),
                       },
@@ -808,9 +833,14 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { className: 'dshstat-scale dshstat-scale-r', 'aria-hidden': 'true' },
-                  h('span', null, h('i', null, fmt.compact(requestMax)), h('i', null, fmt.usd(costMax))),
-                  h('span', null, h('i', null, fmt.compact(requestMax / 2)), h('i', null, fmt.usd(costMax / 2))),
-                  h('span', null, h('i', null, '0'), h('i', null, '$0')),
+                  TICKS.map((pct) =>
+                    h(
+                      'span',
+                      { key: pct, style: tickStyle(pct) },
+                      h('i', null, fmt.compact((requestMax * (100 - pct)) / 100)),
+                      h('i', null, fmt.usd((costMax * (100 - pct)) / 100)),
+                    ),
+                  ),
                 ),
               ),
               h(
