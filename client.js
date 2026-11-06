@@ -50,8 +50,6 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': 'Input',
       'timeline.legendOutput': 'Output',
       'timeline.legendCache': 'Cache read',
-      'timeline.modeTotal': 'All',
-      'timeline.modeBillable': 'Input + output',
       'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} conversations · {turns} turns',
       'timeline.tipTotal': 'Total',
       'timeline.peak': 'Peak {date} · {tokens}',
@@ -129,8 +127,6 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': '输入',
       'timeline.legendOutput': '输出',
       'timeline.legendCache': '缓存读取',
-      'timeline.modeTotal': '全部',
-      'timeline.modeBillable': '输入 + 输出',
       'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} 个对话 · {turns} 轮',
       'timeline.tipTotal': '合计',
       'timeline.peak': '峰值 {date} · {tokens}',
@@ -170,7 +166,7 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:color-mix(in srgb,var(--dsw-static-blue-500,#3b82f6) 45%,transparent);--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
+.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:var(--dsw-static-amber-600,#dd8629);--dshstat-cost:#14b8a6;--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
 .dshstat-inner{max-width:960px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;display:flex;flex-direction:column;gap:18px}
 .dshstat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .dshstat-title{margin:0;font-size:20px;font-weight:500;line-height:28px}
@@ -198,13 +194,14 @@ window.__ModuleLoader__.load({
 
 .dshstat-section{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
 .dshstat-h2{margin:0;font-size:13.5px;font-weight:600}
-.dshstat-legend{display:flex;align-items:center;gap:12px;color:var(--dsw-alias-label-secondary);font-size:11.5px;flex-wrap:wrap}
+.dshstat-legend{display:flex;align-items:center;gap:8px;color:var(--dsw-alias-label-secondary);font-size:11.5px;flex-wrap:wrap}
+.dshstat-legend>span{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:99px;border:1px solid var(--dsw-alias-border-l1);white-space:nowrap}
 .dshstat-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
 .dshstat-plot{display:flex;align-items:stretch;gap:10px;height:168px}
 .dshstat-scale{flex:none;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;min-width:38px;color:var(--dsw-alias-label-tertiary);font-size:10.5px;line-height:1;font-variant-numeric:tabular-nums}
 .dshstat-chart{flex:1 1 0;min-width:0;display:flex;align-items:stretch;gap:2px;position:relative;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dshstat-overlay{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
-.dshstat-costline{fill:none;stroke:var(--dshstat-amber);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.dshstat-costline{fill:none;stroke:var(--dshstat-cost);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .dshstat-avgline{position:absolute;left:0;right:0;border-top:1px dashed var(--dsw-alias-label-tertiary);pointer-events:none;opacity:.55;z-index:2}
 .dshstat-scale-r{align-items:flex-start}
 .dshstat-summary{display:flex;flex-wrap:wrap;gap:6px 22px;margin:2px 0 14px;font-size:12px;color:var(--dsw-alias-label-secondary)}
@@ -629,14 +626,11 @@ window.__ModuleLoader__.load({
       return path
     }
 
-    function Timeline({ series, mode, setMode, t, fmt }) {
+    function Timeline({ series, t, fmt }) {
       const [selected, setSelected] = useState(null)
       const [hover, setHover] = useState(null)
 
-      const metricOf = (entry) =>
-        mode === 'billable'
-          ? (entry.tokens?.input ?? 0) + (entry.tokens?.output ?? 0)
-          : sumBuckets(entry.tokens)
+      const metricOf = (entry) => sumBuckets(entry.tokens)
       const max = series.reduce((value, entry) => Math.max(value, metricOf(entry)), 0)
       const costMax = series.reduce((value, entry) => Math.max(value, entry.cost ?? 0), 0)
       const totalTokens = series.reduce((sum, entry) => sum + sumBuckets(entry.tokens), 0)
@@ -660,9 +654,8 @@ window.__ModuleLoader__.load({
       const segments = (entry) => {
         const tokens = entry.tokens ?? emptyBuckets()
         const scale = max > 0 ? 100 / max : 0
-        const cache = mode === 'billable' ? 0 : tokens.cacheRead
         return [
-          { key: 'cacheRead', value: cache * scale, color: 'var(--dshstat-cache)' },
+          { key: 'cacheRead', value: tokens.cacheRead * scale, color: 'var(--dshstat-cache)' },
           { key: 'output', value: Math.max(tokens.output * scale, tokens.output > 0 ? 1.6 : 0), color: 'var(--dshstat-green)' },
           { key: 'input', value: Math.max(tokens.input * scale, tokens.input > 0 ? 1.6 : 0), color: 'var(--dshstat-blue)' },
         ].filter((segment) => segment.value > 0)
@@ -675,7 +668,7 @@ window.__ModuleLoader__.load({
           h('i', {
             className: 'dshstat-dot',
             style: dashed
-              ? { background: 'transparent', border: `1.5px dashed ${color}`, boxSizing: 'border-box' }
+              ? { background: 'transparent', border: `1.5px dashed ${color}`, borderRadius: '50%', boxSizing: 'border-box', margin: '0 5px 0 0' }
               : { background: color, boxShadow: 'none' },
           }),
           label,
@@ -699,16 +692,10 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'dshstat-legend' },
-            h(
-              'div',
-              { className: 'dshstat-seg', role: 'group' },
-              h('button', { 'data-on': mode === 'total', onClick: () => setMode('total') }, t('timeline.modeTotal')),
-              h('button', { 'data-on': mode === 'billable', onClick: () => setMode('billable') }, t('timeline.modeBillable')),
-            ),
             chip(t('timeline.legendInput'), 'var(--dshstat-blue)'),
             chip(t('timeline.legendOutput'), 'var(--dshstat-green)'),
-            mode === 'billable' ? null : chip(t('timeline.legendCache'), 'var(--dshstat-cache)'),
-            chip(t('timeline.legendCost'), 'var(--dshstat-amber)'),
+            chip(t('timeline.legendCache'), 'var(--dshstat-cache)'),
+            chip(t('timeline.legendCost'), 'var(--dshstat-cost)'),
             chip(t('timeline.average'), 'var(--dsw-alias-label-tertiary)', true),
           ),
         ),
@@ -796,7 +783,7 @@ window.__ModuleLoader__.load({
                         tipRow(t('timeline.legendInput'), hovered.tokens?.input ?? 0, 'var(--dshstat-blue)'),
                         tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
                         tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
-                        tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-amber)'),
+                        tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-cost)'),
                         h(
                           'div',
                           { className: 'dshstat-daytip-total' },
@@ -1112,7 +1099,6 @@ window.__ModuleLoader__.load({
       const { t, fmt } = useLocaleFace(locale, fallbackLocale)
       const { status, data, error, refresh, auto, setAuto } = useSnapshotData()
       const [rangeDays, setRangeDays] = useState(0)
-      const [mode, setMode] = useState('billable')
 
       const view = useMemo(() => (data ? aggregate(data, rangeDays) : null), [data, rangeDays])
       const series = useMemo(() => (data ? buildSeries(data.days, rangeDays, Date.now()) : []), [data, rangeDays])
@@ -1230,7 +1216,7 @@ window.__ModuleLoader__.load({
 
           // A per-day chart has no temporal resolution inside a single day, so the
           // Today range shows the KPI cards, models, and conversations without it.
-          rangeDays === 1 ? null : h(Timeline, { series, mode, setMode, t, fmt, key: `timeline-${rangeDays}` }),
+          rangeDays === 1 ? null : h(Timeline, { series, t, fmt, key: `timeline-${rangeDays}` }),
 
           h(
             'div',
