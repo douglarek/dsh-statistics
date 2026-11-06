@@ -764,10 +764,8 @@ window.__ModuleLoader__.load({
                           sessions: entry.sessions ?? 0,
                           turns: entry.turns ?? 0,
                         }),
-                        onMouseEnter: (event) => {
-                          const rect = event.currentTarget.getBoundingClientRect()
-                          setHover({ index, x: rect.left + rect.width / 2, y: rect.top })
-                        },
+                        onMouseEnter: (event) => setHover({ index, x: event.clientX, y: event.clientY }),
+                        onMouseMove: (event) => setHover({ index, x: event.clientX, y: event.clientY }),
                         onMouseLeave: () => setHover(null),
                         onClick: () => setSelected(index),
                       },
@@ -786,9 +784,9 @@ window.__ModuleLoader__.load({
                         {
                           className: 'dshstat-daytip',
                           style: {
-                            left: `${Math.max(120, Math.min(hover.x, window.innerWidth - 120))}px`,
-                            top: `${hover.y - 8}px`,
-                            transform: 'translate(-50%, -100%)',
+                            left: `${hover.x + (hover.x > window.innerWidth - 260 ? -16 : 16)}px`,
+                            top: `${hover.y + (hover.y > window.innerHeight - 210 ? -16 : 16)}px`,
+                            transform: `translate(${hover.x > window.innerWidth - 260 ? '-100%' : '0'}, ${hover.y > window.innerHeight - 210 ? '-100%' : '0'})`,
                           },
                         },
                         h('div', { className: 'dshstat-daytip-head' }, fmt.dayLong(hovered.day)),
