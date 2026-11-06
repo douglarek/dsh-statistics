@@ -39,11 +39,15 @@
     "legendInput": "输入",
     "legendOutput": "输出",
     "legendCache": "缓存读取",
-    "legendCost": "费用",
+    "legendCost": "成本",
     "day": "{date}",
     "daySummary": "{tokens} tokens · {cost} · {sessions} 个对话",
     "peak": "峰值 {date} · {tokens}",
-    "sessions": "{count} 个对话"
+    "sessions": "{count} 个对话",
+    "average": "平均值",
+    "totalTokens": "Token 总量",
+    "totalCost": "总成本",
+    "perMillion": "每 1M Token"
   },
   "cpu": {
     "title": "CPU 活动",
