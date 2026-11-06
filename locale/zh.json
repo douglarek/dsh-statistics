@@ -44,8 +44,6 @@
     "daySummary": "{tokens} tokens · {cost} · {sessions} 个对话",
     "peak": "峰值 {date} · {tokens}",
     "sessions": "{count} 个对话",
-    "totalTokens": "Token 总量",
-    "totalCost": "总成本",
     "perMillion": "每 1M Token",
     "legendRequests": "请求数",
     "totalRequests": "总请求数"

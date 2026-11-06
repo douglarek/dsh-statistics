@@ -57,8 +57,6 @@ window.__ModuleLoader__.load({
       'timeline.legendCost': 'Cost',
       'timeline.legendRequests': 'Requests',
       'timeline.totalRequests': 'Total requests',
-      'timeline.totalTokens': 'Total tokens',
-      'timeline.totalCost': 'Total cost',
       'timeline.perMillion': 'Per 1M tokens',
       'cpu.title': 'CPU activity',
       'cpu.process': 'Harness process',
@@ -135,8 +133,6 @@ window.__ModuleLoader__.load({
       'timeline.legendCost': '成本',
       'timeline.legendRequests': '请求数',
       'timeline.totalRequests': '总请求数',
-      'timeline.totalTokens': 'Token 总量',
-      'timeline.totalCost': '总成本',
       'timeline.perMillion': '每 1M Token',
       'cpu.title': 'CPU 活动',
       'cpu.process': 'Harness 进程',
@@ -208,8 +204,9 @@ window.__ModuleLoader__.load({
 .dshstat-scale-r{align-items:flex-start;min-width:86px}
 .dshstat-scale-r span{display:flex;gap:8px;font-variant-numeric:tabular-nums}
 .dshstat-scale-r i{font-style:normal}
-.dshstat-summary{display:flex;flex-wrap:wrap;gap:6px 22px;margin:2px 0 14px;font-size:12px;color:var(--dsw-alias-label-secondary)}
-.dshstat-summary b{margin-left:6px;color:var(--dsw-alias-label-primary);font-weight:600;font-variant-numeric:tabular-nums}
+.dshstat-headtools{display:flex;align-items:center;justify-content:flex-end;gap:10px 20px;flex-wrap:wrap}
+.dshstat-inline-stats{display:flex;align-items:center;gap:18px;font-size:12px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums}
+.dshstat-inline-stats b{margin-left:6px;color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-daytip{position:fixed;z-index:60;min-width:168px;padding:8px 10px;border-radius:9px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 28px rgba(0,0,0,.18);pointer-events:none;font-size:11.5px;line-height:1.6;font-variant-numeric:tabular-nums;white-space:nowrap}
 .dshstat-daytip-head{margin-bottom:4px;font-weight:600}
 .dshstat-daytip-row{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--dsw-alias-label-secondary)}
@@ -701,12 +698,22 @@ window.__ModuleLoader__.load({
           h('h2', { className: 'dshstat-h2' }, t('timeline.title')),
           h(
             'div',
-            { className: 'dshstat-legend' },
-            chip(t('timeline.legendInput'), 'var(--dshstat-blue)'),
-            chip(t('timeline.legendOutput'), 'var(--dshstat-green)'),
-            chip(t('timeline.legendCache'), 'var(--dshstat-cache)'),
-            chip(t('timeline.legendCost'), 'var(--dshstat-cost)'),
-            chip(t('timeline.legendRequests'), 'var(--dshstat-request)'),
+            { className: 'dshstat-headtools' },
+            h(
+              'div',
+              { className: 'dshstat-inline-stats' },
+              h('span', null, t('timeline.perMillion'), h('b', null, totalTokens > 0 ? fmt.usd(perMillion) : '—')),
+              h('span', null, t('timeline.totalRequests'), h('b', null, fmt.int(totalRequests))),
+            ),
+            h(
+              'div',
+              { className: 'dshstat-legend' },
+              chip(t('timeline.legendInput'), 'var(--dshstat-blue)'),
+              chip(t('timeline.legendOutput'), 'var(--dshstat-green)'),
+              chip(t('timeline.legendCache'), 'var(--dshstat-cache)'),
+              chip(t('timeline.legendCost'), 'var(--dshstat-cost)'),
+              chip(t('timeline.legendRequests'), 'var(--dshstat-request)'),
+            ),
           ),
         ),
         series.length === 0
@@ -714,14 +721,6 @@ window.__ModuleLoader__.load({
           : h(
               'div',
               null,
-              h(
-                'div',
-                { className: 'dshstat-summary' },
-                h('span', null, t('timeline.totalTokens'), h('b', null, fmt.compact(totalTokens))),
-                h('span', null, t('timeline.totalCost'), h('b', null, fmt.usd(totalCost))),
-                h('span', null, t('timeline.perMillion'), h('b', null, totalTokens > 0 ? fmt.usd(perMillion) : '—')),
-                h('span', null, t('timeline.totalRequests'), h('b', null, fmt.int(totalRequests))),
-              ),
               h(
                 'div',
                 { className: 'dshstat-plot' },
