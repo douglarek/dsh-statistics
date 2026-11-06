@@ -202,8 +202,6 @@ window.__ModuleLoader__.load({
 .dshstat-costline{fill:none;stroke:var(--dshstat-cost);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .dshstat-requestline{fill:none;stroke:var(--dshstat-request);stroke-width:1.8;stroke-dasharray:5 4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.9}
 .dshstat-scale-r{align-items:flex-start;min-width:86px}
-.dshstat-axiscap{display:flex;justify-content:flex-end;gap:8px;margin-bottom:5px;font-size:10px;line-height:1;letter-spacing:.02em}
-.dshstat-axiscap i{font-style:normal;width:46px}
 .dshstat-scale-r span{display:flex;gap:8px;font-variant-numeric:tabular-nums}
 .dshstat-scale-r i{font-style:normal}
 .dshstat-headtools{display:flex;align-items:center;justify-content:flex-end;gap:10px 20px;flex-wrap:wrap}
@@ -723,12 +721,6 @@ window.__ModuleLoader__.load({
           : h(
               'div',
               null,
-              h(
-                'div',
-                { className: 'dshstat-axiscap', 'aria-hidden': 'true' },
-                h('i', { style: { color: 'var(--dshstat-request)' } }, t('timeline.legendRequests')),
-                h('i', { style: { color: 'var(--dshstat-cost)' } }, t('timeline.legendCost')),
-              ),
               h(
                 'div',
                 { className: 'dshstat-plot' },
