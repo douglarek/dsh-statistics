@@ -34,7 +34,7 @@
     "periodAll": "period"
   },
   "timeline": {
-    "title": "Token usage timeline",
+    "title": "Usage timeline",
     "empty": "No usage in this range.",
     "legendInput": "Input",
     "legendOutput": "Output",

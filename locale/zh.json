@@ -34,7 +34,7 @@
     "periodAll": "周期"
   },
   "timeline": {
-    "title": "Token 用量时间线",
+    "title": "用量时间线",
     "empty": "该范围内没有用量。",
     "legendInput": "输入",
     "legendOutput": "输出",

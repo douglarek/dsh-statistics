@@ -45,7 +45,7 @@ window.__ModuleLoader__.load({
       'kpi.periodWeek': 'week',
       'kpi.periodDay': 'day',
       'kpi.periodAll': 'period',
-      'timeline.title': 'Token usage timeline',
+      'timeline.title': 'Usage timeline',
       'timeline.empty': 'No usage in this range.',
       'timeline.legendInput': 'Input',
       'timeline.legendOutput': 'Output',
@@ -121,7 +121,7 @@ window.__ModuleLoader__.load({
       'kpi.periodWeek': '周',
       'kpi.periodDay': '日',
       'kpi.periodAll': '周期',
-      'timeline.title': 'Token 用量时间线',
+      'timeline.title': '用量时间线',
       'timeline.empty': '该范围内没有用量。',
       'timeline.legendInput': '输入',
       'timeline.legendOutput': '输出',
@@ -681,12 +681,12 @@ window.__ModuleLoader__.load({
           label,
         )
 
-      const tipRow = (label, value, color) =>
+      const tipRow = (label, value, color, format) =>
         h(
           'div',
           { className: 'dshstat-daytip-row' },
           h('span', null, h('i', { className: 'dshstat-dot', style: { background: color } }), label),
-          h('b', null, fmt.compact(value)),
+          h('b', null, (format ?? fmt.compact)(value)),
         )
 
       return h(
@@ -792,7 +792,7 @@ window.__ModuleLoader__.load({
                         tipRow(t('timeline.legendInput'), hovered.tokens?.input ?? 0, 'var(--dshstat-blue)'),
                         tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
                         tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
-                        tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-cost)'),
+                        tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-cost)', fmt.usd),
                         tipRow(t('timeline.legendRequests'), hovered.requests ?? 0, 'var(--dshstat-request)'),
                         h(
                           'div',
@@ -827,7 +827,7 @@ window.__ModuleLoader__.load({
                     h('span', null, t('timeline.legendInput'), ' ', h('b', null, fmt.compact(active.tokens?.input ?? 0))),
                     h('span', null, t('timeline.legendOutput'), ' ', h('b', null, fmt.compact(active.tokens?.output ?? 0))),
                     h('span', null, t('timeline.legendCache'), ' ', h('b', null, fmt.compact(active.tokens?.cacheRead ?? 0))),
-                    h('span', null, h('b', null, fmt.usd(active.cost))),
+                    h('span', null, t('timeline.legendCost'), ' ', h('b', null, fmt.usd(active.cost))),
                     h('span', null, t('timeline.sessions', { count: fmt.int(active.sessions ?? 0) })),
                   )
                 : null,
