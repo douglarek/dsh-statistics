@@ -213,6 +213,8 @@ window.__ModuleLoader__.load({
 .dshstat-daytip-total{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:5px;padding-top:5px;border-top:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-primary)}
 .dshstat-gridline{position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--dsw-alias-border-l1);pointer-events:none}
 .dshstat-col{flex:1 1 0;min-width:2px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;position:relative}
+.dshstat-col::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;margin-left:-0.5px;background:var(--dsw-alias-border-l2);pointer-events:none}
+.dshstat-chart[data-dense="true"] .dshstat-col::before{display:none}
 .dshstat-col[data-on="true"]::after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:min(40px,100%);bottom:-5px;height:2px;border-radius:1px;background:var(--dsw-alias-brand-primary)}
 .dshstat-stack{position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%;width:100%;max-width:40px;margin:0 auto;border-radius:4px 4px 0 0;overflow:hidden}
 .dshstat-stack::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;transition:background .12s ease}
@@ -733,7 +735,7 @@ window.__ModuleLoader__.load({
                 ),
                 h(
                   'div',
-                  { className: 'dshstat-chart' },
+                  { className: 'dshstat-chart', 'data-dense': series.length > 45 ? 'true' : 'false' },
                   max > 0 ? h('div', { className: 'dshstat-gridline', style: { top: '25%' } }) : null,
                   max > 0 ? h('div', { className: 'dshstat-gridline' }) : null,
                   max > 0 ? h('div', { className: 'dshstat-gridline', style: { top: '75%' } }) : null,
