@@ -295,7 +295,8 @@ window.__ModuleLoader__.load({
 .dshstat-stat b{display:block;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .dshstat-stat span{font-size:11px;color:var(--dsw-alias-label-secondary)}
 .dshstat-models{display:flex;flex-direction:column;gap:10px}
-.dshstat-model{display:flex;flex-direction:column;gap:5px}
+.dshstat-model{display:flex;flex-direction:column;gap:5px;border-radius:8px;transition:background .12s ease}
+.dshstat-model[data-hover="true"]{background:var(--dsw-alias-interactive-bg-hover)}
 .dshstat-model-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px}
 .dshstat-model-id{font-family:var(--dsw-font-mono,ui-monospace,Menlo,monospace);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dshstat-model-num{color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1073,6 +1074,20 @@ window.__ModuleLoader__.load({
 
     function ModelsCard({ models, t, fmt }) {
       const max = models.reduce((value, model) => Math.max(value, model.cost), 0)
+      const [tip, setTip] = useState(null)
+      const hovered = tip !== null && models[tip.index] ? models[tip.index] : null
+      const show = (event, index) => {
+        const nearRight = event.clientX > window.innerWidth - 280
+        const nearBottom = event.clientY > window.innerHeight - 220
+        setTip({ index, x: event.clientX + (nearRight ? -14 : 14), y: event.clientY + (nearBottom ? -14 : 14), flipX: nearRight, flipY: nearBottom })
+      }
+      const tipRow = (label, value, color) =>
+        h(
+          'div',
+          { className: 'dshstat-daytip-row' },
+          h('span', null, h('i', { className: 'dshstat-dot', style: { background: color } }), label),
+          h('b', null, fmt.compact(value)),
+        )
       return h(
         'div',
         { className: 'dshstat-card' },
@@ -1082,10 +1097,17 @@ window.__ModuleLoader__.load({
           : h(
               'div',
               { className: 'dshstat-models' },
-              models.map((model) =>
+              models.map((model, index) =>
                 h(
                   'div',
-                  { key: model.id, className: 'dshstat-model' },
+                  {
+                    key: model.id,
+                    className: 'dshstat-model',
+                    'data-hover': tip !== null && tip.index === index ? 'true' : 'false',
+                    onMouseEnter: (event) => show(event, index),
+                    onMouseMove: (event) => show(event, index),
+                    onMouseLeave: () => setTip(null),
+                  },
                   h(
                     'div',
                     { className: 'dshstat-model-row' },
@@ -1113,6 +1135,29 @@ window.__ModuleLoader__.load({
                 ),
               ),
             ),
+        hovered
+          ? h(
+              'div',
+              {
+                className: 'dshstat-daytip',
+                style: {
+                  left: `${tip.x}px`,
+                  top: `${tip.y}px`,
+                  transform: `translate(${tip.flipX ? '-100%' : '0'}, ${tip.flipY ? '-100%' : '0'})`,
+                },
+              },
+              h('div', { className: 'dshstat-daytip-head' }, hovered.id),
+              tipRow(t('timeline.legendInput'), hovered.tokens?.input ?? 0, 'var(--dshstat-blue)'),
+              tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
+              tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
+              h(
+                'div',
+                { className: 'dshstat-daytip-total' },
+                h('span', null, t('timeline.tipTotal'), ' ', h('b', null, fmt.compact(sumBuckets(hovered.tokens)))),
+                h('b', null, fmt.usd(hovered.cost)),
+              ),
+            )
+          : null,
       )
     }
 
