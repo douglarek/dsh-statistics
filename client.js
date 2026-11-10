@@ -1117,6 +1117,9 @@ window.__ModuleLoader__.load({
     }
 
     const PAGE_SIZE = 12
+    /** Card width the grid keeps; keep in sync with .dshstat-cards in the CSS. */
+    const CARD_MIN = 272
+    const CARD_GAP = 12
     const DEFAULT_CONTENT_WIDTH = 960
     const MIN_CONTENT_WIDTH = 680
     const MAX_CONTENT_WIDTH = 2400
@@ -1326,6 +1329,32 @@ window.__ModuleLoader__.load({
         setPage(0)
       }, [query, workspace, sort])
 
+      // How many cards actually fit: the CSS auto-fill decides it, but a row that
+      // ends half empty (7 + 5 of twelve) reads as a mistake, so measure the track
+      // count and even the cards out across the rows.
+      const gridRef = useRef(null)
+      const [fitColumns, setFitColumns] = useState(0)
+      useEffect(() => {
+        const node = gridRef.current
+        if (!node || typeof ResizeObserver === 'undefined') return
+        const measure = () => {
+          const width = node.clientWidth
+          if (width > 0) setFitColumns(Math.max(1, Math.floor((width + CARD_GAP) / (CARD_MIN + CARD_GAP))))
+        }
+        measure()
+        const observer = new ResizeObserver(measure)
+        observer.observe(node)
+        return () => observer.disconnect()
+      }, [])
+
+      const columns = useMemo(() => {
+        if (fitColumns < 2) return 0
+        const count = pageRows.length
+        if (count === 0) return fitColumns
+        const spread = count > fitColumns ? Math.ceil(count / Math.ceil(count / fitColumns)) : Math.max(count, Math.ceil(fitColumns / 2))
+        return Math.min(fitColumns, spread)
+      }, [fitColumns, pageRows.length])
+
       const onTitleHover = (event, rowOrContent) => {
         if (event === null) {
           setTip(null)
@@ -1397,7 +1426,11 @@ window.__ModuleLoader__.load({
         ),
         h(
           'div',
-          { className: 'dshstat-cards' },
+          {
+            className: 'dshstat-cards',
+            ref: gridRef,
+            style: columns > 0 ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : undefined,
+          },
           pageRows.map((row) =>
             h(SessionCard, {
               key: row.sessionId,
