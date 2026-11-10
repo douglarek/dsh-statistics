@@ -10,8 +10,9 @@
  * @module dsh-statistics
  */
 
-import { buildSnapshot, foldSession, normalizeRates } from './lib/fold.js'
+import { applyFoldEvent, buildSnapshot, createFoldState, finishFold, normalizeRates } from './lib/fold.js'
 import { createCpuSampler } from './lib/cpu.js'
+import { cachePath, createCacheWriter, readCache } from './lib/cache.js'
 
 /** Stable Cordis plugin name. */
 export const name = 'statistics'
@@ -194,34 +195,86 @@ async function readStoredSession(ctx, id) {
 }
 
 /**
+ * Storage revisions for every persisted session, plus what went wrong if the
+ * profile cannot report them. A missing revision is never reused, so an unknown
+ * state costs a rescan rather than a stale number.
+ *
+ * @param {object} ctx
+ */
+async function revisionsOf(ctx) {
+  const persistence = ctx.get('sessionPersistence')
+  if (!persistence) return { revisions: new Map(), note: 'sessionPersistence unavailable' }
+  if (typeof persistence.list !== 'function') return { revisions: new Map(), note: 'sessionPersistence.list missing' }
+  try {
+    const snapshots = await persistence.list({})
+    const revisions = new Map()
+    for (const snapshot of snapshots) {
+      const id = snapshot?.header?.id
+      if (id === undefined || id === null) continue
+      const revision = snapshot.revision
+      if (revision === undefined || revision === null) continue
+      revisions.set(String(id), String(revision))
+    }
+    return { revisions, note: revisions.size === 0 ? 'sessionPersistence.list returned no revisions' : null }
+  } catch (error) {
+    return { revisions: new Map(), note: `sessionPersistence.list failed: ${error instanceof Error ? error.message : String(error)}` }
+  }
+}
+
+/**
  * Folded conversations, refreshed on a TTL, with unchanged persisted logs left
- * alone between refreshes.
+ * alone between refreshes and carried across restarts through the disk cache.
  *
  * @param {object} ctx
  * @param {ReturnType<typeof validateConfig>} config
  */
 function createSessionCache(ctx, config) {
-  /** @type {Map<string, {stamp: string, header: object, fold: object}>} */
+  /** @type {Map<string, {revision: string | null, header: object, fold: object}>} */
   let folds = new Map()
+  const file = cachePath()
+  const writer = createCacheWriter(file)
+  let hydrated = false
+  let revisionNote = null
   let source = 'none'
   let lastScanAt = 0
   let lastError = null
   let inflight = null
 
+  async function hydrate() {
+    if (hydrated) return
+    hydrated = true
+    folds = await readCache(file)
+  }
+
   async function scan() {
+    await hydrate()
     const listed = await listStoredSessions(ctx)
     source = listed.source
+    const { revisions, note } = await revisionsOf(ctx)
+    revisionNote = note
     const next = new Map()
+    let reused = 0
     for (const record of listed.records.slice(0, config.maxSessions)) {
       if (record.id.length === 0) continue
       const cached = folds.get(record.id)
-      if (cached && !record.live && record.stamp === cached.stamp) {
+      const revision = record.live ? null : revisions.get(record.id) ?? null
+      if (cached && cached.state) {
+        cached.fold = finishFold(cached.state)
+        cached.dirty = false
+        next.set(record.id, revision === null || revision === cached.revision ? cached : { ...cached, revision })
+        reused += 1
+        continue
+      }
+      if (cached && revision !== null && cached.revision === revision) {
         next.set(record.id, cached)
+        reused += 1
         continue
       }
       try {
         const { header, events } = await readStoredSession(ctx, record.id)
-        next.set(record.id, { stamp: record.stamp, header, fold: foldSession({ header, events }) })
+        const state = createFoldState(header)
+        for (const event of events) applyFoldEvent(state, event)
+        next.set(record.id, { revision, header, fold: finishFold(state), state: record.live ? state : null })
       } catch (error) {
         lastError = `could not read ${record.id}: ${error instanceof Error ? error.message : String(error)}`
         if (cached) next.set(record.id, cached)
@@ -229,6 +282,10 @@ function createSessionCache(ctx, config) {
     }
     folds = next
     lastScanAt = Date.now()
+    writer.schedule({
+      sessions: Object.fromEntries([...folds].map(([id, entry]) => [id, { revision: entry.revision, header: entry.header, fold: entry.fold }])),
+      diagnostics: { source, revisionNote, cached: folds.size, reused },
+    })
   }
 
   return {
@@ -237,6 +294,22 @@ function createSessionCache(ctx, config) {
     },
     get lastError() {
       return lastError
+    },
+    get revisionNote() {
+      return revisionNote
+    },
+    /**
+     * Fold one committed event into a live session's state. Sessions without a
+     * tracked state are ignored: their next scan reads them in full.
+     *
+     * @param {string} id
+     * @param {object} event
+     */
+    applyEvent(id, event) {
+      const entry = folds.get(id)
+      if (!entry || !entry.state) return
+      applyFoldEvent(entry.state, event)
+      entry.dirty = true
     },
     /** Folded conversations, scanning first when the cache has gone stale. */
     async collect() {
@@ -249,7 +322,26 @@ function createSessionCache(ctx, config) {
         }
         await inflight
       }
+      for (const entry of folds.values()) {
+        if (!entry.dirty) continue
+        entry.fold = finishFold(entry.state)
+        entry.dirty = false
+      }
       return [...folds.values()]
+    },
+    /** Persist whatever is folded, for teardown. */
+    async dispose() {
+      for (const entry of folds.values()) {
+        if (!entry.dirty) continue
+        entry.fold = finishFold(entry.state)
+        entry.dirty = false
+      }
+      writer.schedule({
+        sessions: Object.fromEntries([...folds].map(([id, entry]) => [id, { revision: entry.revision, header: entry.header, fold: entry.fold }])),
+        diagnostics: { source, revisionNote, cached: folds.size, reused: 0, teardown: true },
+      })
+      await writer.flushNow()
+      writer.stop()
     },
   }
 }
@@ -276,13 +368,17 @@ export function apply(ctx, rawConfig = {}) {
     cpu.setRunning(id, isRunning(payload.status))
   })
 
+  const cache = createSessionCache(ctx, config)
+  ctx.effect(() => () => cache.dispose(), 'dsh-statistics: persist the fold cache')
+
   const ACTIVITY_EVENTS = new Set(['turn/start', 'step/start', 'assistant/message', 'tool/call'])
   ctx.on('session/event', (session, event) => {
-    if (session?.id === undefined || !ACTIVITY_EVENTS.has(event?.type)) return
-    cpu.touch(session.id)
+    const id = session?.id
+    if (id === undefined || id === null) return
+    if (ACTIVITY_EVENTS.has(event?.type)) cpu.touch(id)
+    cache.applyEvent(String(id), event)
   })
 
-  const cache = createSessionCache(ctx, config)
 
   ctx.effect(() => {
     const timer = setTimeout(() => {
