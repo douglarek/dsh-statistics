@@ -52,7 +52,7 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': 'Input',
       'timeline.legendOutput': 'Output',
       'timeline.legendCache': 'Cache read',
-      'metrics.cacheHit': 'Cache hit',
+      'metrics.cacheHit': 'Cache hit rate',
       'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} conversations · {turns} turns',
       'timeline.tipTotal': 'Total',
       'timeline.peak': 'Peak {date} · {tokens}',
@@ -142,7 +142,7 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': '输入',
       'timeline.legendOutput': '输出',
       'timeline.legendCache': '缓存读取',
-      'metrics.cacheHit': '缓存命中',
+      'metrics.cacheHit': '缓存命中率',
       'timeline.daySummary': '{tokens} 词元 · {cost} · {sessions} 个会话 · {turns} 轮',
       'timeline.tipTotal': '合计',
       'timeline.peak': '峰值 {date} · {tokens}',
@@ -360,8 +360,14 @@ window.__ModuleLoader__.load({
       return read + miss > 0 ? (read / (read + miss)) * 100 : null
     }
 
+    /**
+     * Round a hit rate to the precision that still shows the difference: two
+     * decimals normally, three once the share is above 99.99%, so 99.9988% does
+     * not print as a misleading 100.0%.
+     */
     function formatHitRate(value) {
-      return value === null ? '—' : `${value.toFixed(1)}%`
+      if (value === null) return '—'
+      return `${value.toFixed(value >= 99.99 ? 3 : 2)}%`
     }
 
     function dayKeyOf(time) {
