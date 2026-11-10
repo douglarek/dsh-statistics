@@ -4,8 +4,9 @@ A DeepSeek Harness bundle that reads every conversation log in the current
 profile and reports what those conversations actually cost. It adds a
 **Statistics** panel to the sidebar, beside Plugins and Schedules.
 
-![The Statistics panel: token totals, estimated cost and budget, a daily usage
-timeline, CPU activity, models, and the conversation table](docs/panel.jpg)
+| The panel | Sessions |
+|:---:|:---:|
+| [![The Statistics panel: token totals, budget, a daily usage timeline with cost and request lines, CPU activity, and model costs](docs/panel.jpg)](docs/panel.jpg) | [![Sessions as cards: each with a cost-split donut, turns, tokens, cost, CPU, and the model it ran on](docs/sessions.jpg)](docs/sessions.jpg) |
 
 ## What the panel shows
 
