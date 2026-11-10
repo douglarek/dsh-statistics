@@ -3,7 +3,7 @@ window.__ModuleLoader__.load({
   factory(require) {
     const React = require('react')
     const h = React.createElement
-    const { useCallback, useEffect, useMemo, useState, useSyncExternalStore } = React
+    const { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } = React
 
     const SNAPSHOT_URL = '/api/statistics/snapshot'
     /** Snapshot payload version this panel was built against; the Host stamps its own. */
@@ -81,6 +81,7 @@ window.__ModuleLoader__.load({
       'card.all': 'All',
       'card.search': 'Search title, workspace, or model',
       'card.open': 'Open this session',
+      'card.composition': 'Token composition',
       'card.range': '{from}–{to} of {total}',
       'card.prev': 'Previous page',
       'card.next': 'Next page',
@@ -169,6 +170,7 @@ window.__ModuleLoader__.load({
       'card.all': '全部',
       'card.search': '搜索标题 / 工作区 / 模型',
       'card.open': '打开该会话',
+      'card.composition': '词元构成',
       'card.range': '{from}–{to} / 共 {total}',
       'card.prev': '上一页',
       'card.next': '下一页',
@@ -190,7 +192,12 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.dshstat-root{box-sizing:border-box;height:100%;min-height:0;overflow:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:var(--dsw-static-amber-600,#dd8629);--dshstat-cost:#14b8a6;--dshstat-request:#8b5cf6;--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
+.dshstat-shell{position:relative;height:100%;min-height:0;display:flex;min-width:0}
+.dshstat-root{box-sizing:border-box;height:100%;max-height:100%;min-height:0;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:var(--dsw-static-amber-600,#dd8629);--dshstat-cost:#14b8a6;--dshstat-request:#8b5cf6;--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
+.dshstat-root::-webkit-scrollbar{width:0;height:0}
+.dshstat-handle{position:absolute;top:0;bottom:0;width:20px;display:flex;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;z-index:5}
+.dshstat-handle::before{content:'';width:2px;height:132px;border-radius:2px;background:transparent;transition:background .15s ease,height .15s ease}
+.dshstat-handle:hover::before,.dshstat-handle:active::before{background:var(--dsw-static-neutral-300,#d4d4d4);height:150px}
 .dshstat-inner{max-width:960px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;display:flex;flex-direction:column;gap:18px}
 .dshstat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .dshstat-title{margin:0;font-size:20px;font-weight:500;line-height:28px}
@@ -311,6 +318,13 @@ window.__ModuleLoader__.load({
 .dshstat-tip{position:fixed;z-index:60;display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 28px rgba(0,0,0,.18);pointer-events:none;font-size:12px;line-height:1.4}
 .dshstat-tip b{font-weight:600;word-break:break-word}
 .dshstat-tip span{font-size:11px;color:var(--dsw-alias-label-secondary);word-break:break-all;font-family:var(--dsw-font-mono,ui-monospace,Menlo,monospace)}
+.dshstat-tip-row{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:11.5px;color:var(--dsw-alias-label-secondary)}
+.dshstat-tip-row span{font-family:inherit;font-size:11.5px;word-break:normal}
+.dshstat-tip-row b{color:var(--dsw-alias-label-primary);font-weight:600;font-family:inherit}
+.dshstat-tip-total{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:4px;padding-top:5px;border-top:1px solid var(--dsw-alias-border-l1);font-size:11.5px;color:var(--dsw-alias-label-secondary)}
+.dshstat-tip-total b{color:var(--dsw-alias-label-primary);font-weight:600}
+.dshstat-donut-wrap{flex:none}
+.dshstat-scard-model{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--dsw-font-mono,ui-monospace,Menlo,monospace);font-size:10.5px;color:var(--dsw-alias-label-secondary)}
 .dshstat-tag{display:inline-flex;align-items:center;flex:none;height:16px;padding:0 5px;border-radius:4px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);font-size:10px;line-height:1}
 .dshstat-notice{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;padding:10px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;background:var(--dsw-alias-bg-layer-1)}
 .dshstat-state{padding:48px 8px;text-align:center;color:var(--dsw-alias-label-secondary);font-size:13px}
@@ -1103,6 +1117,11 @@ window.__ModuleLoader__.load({
     }
 
     const PAGE_SIZE = 12
+    const DEFAULT_CONTENT_WIDTH = 960
+    const MIN_CONTENT_WIDTH = 680
+    const MAX_CONTENT_WIDTH = 2400
+    const CONTENT_GUTTER = 56
+    const CONTENT_WIDTH_KEY = 'dsh-statistics:content-width'
 
     const GLOB_CACHE = new Map()
 
@@ -1214,16 +1233,33 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'dshstat-scard-body' },
-          h(Donut, {
-            parts: [
+          h(
+            'div',
+            {
+              className: 'dshstat-donut-wrap',
+              onMouseEnter: (event) =>
+                onTitleHover(event, {
+                  title: t('card.composition'),
+                  rows: [
+                    [t('timeline.legendInput'), fmt.compact(row.tokens.input), 'var(--dshstat-blue)'],
+                    [t('timeline.legendOutput'), fmt.compact(row.tokens.output), 'var(--dshstat-green)'],
+                    [t('timeline.legendCache'), fmt.compact(row.tokens.cacheRead), 'var(--dshstat-cache)'],
+                  ],
+                  footer: [t('kpi.tokens'), fmt.compact(row.totalTokens)],
+                }),
+              onMouseLeave: () => onTitleHover(null),
+            },
+            h(Donut, {
+              parts: [
               { key: 'input', value: parts.input, color: 'var(--dshstat-blue)' },
               { key: 'output', value: parts.output, color: 'var(--dshstat-green)' },
               { key: 'cacheRead', value: parts.cacheRead, color: 'var(--dshstat-cache)' },
             ],
-            center: fmt.usd(row.cost),
-            share,
-            fmt,
-          }),
+              center: fmt.usd(row.cost),
+              share,
+              fmt,
+            }),
+          ),
           h(
             'div',
             { className: 'dshstat-metrics' },
@@ -1236,9 +1272,15 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'dshstat-scard-foot' },
-          h('span', null, t('timeline.legendInput'), ' ', h('b', null, fmt.compact(row.tokens.input))),
-          h('span', null, t('timeline.legendOutput'), ' ', h('b', null, fmt.compact(row.tokens.output))),
-          h('span', null, t('timeline.legendCache'), ' ', h('b', null, fmt.compact(row.tokens.cacheRead))),
+          h(
+            'span',
+            {
+              className: 'dshstat-scard-model',
+              onMouseEnter: (event) => onTitleHover(event, { title: row.model ?? t('cpu.noSample') }),
+              onMouseLeave: () => onTitleHover(null),
+            },
+            row.model ?? t('cpu.noSample'),
+          ),
         ),
       )
     }
@@ -1284,18 +1326,19 @@ window.__ModuleLoader__.load({
         setPage(0)
       }, [query, workspace, sort])
 
-      const onTitleHover = (event, row) => {
+      const onTitleHover = (event, rowOrContent) => {
         if (event === null) {
           setTip(null)
           return
         }
         const target = event.currentTarget
-        if (target.scrollWidth <= target.clientWidth) return
+        const ready = rowOrContent !== null && rowOrContent !== undefined && Array.isArray(rowOrContent.rows)
+        if (!ready && target.scrollWidth <= target.clientWidth) return
         const rect = target.getBoundingClientRect()
         const width = Math.min(560, Math.max(240, window.innerWidth - 48))
+        const content = ready ? rowOrContent : { title: rowOrContent.title ?? t('table.untitled'), cwd: rowOrContent.cwd }
         setTip({
-          title: row.title ?? t('table.untitled'),
-          cwd: row.cwd,
+          ...content,
           left: Math.max(16, Math.min(rect.left, window.innerWidth - width - 16)),
           top: rect.bottom + 6,
           width,
@@ -1400,6 +1443,17 @@ window.__ModuleLoader__.load({
               { className: 'dshstat-tip', style: { left: `${tip.left}px`, top: `${tip.top}px`, maxWidth: `${tip.width}px` } },
               h('b', null, tip.title),
               tip.cwd ? h('span', null, tip.cwd) : null,
+              (tip.rows ?? []).map(([label, value, color]) =>
+                h(
+                  'div',
+                  { key: label, className: 'dshstat-tip-row' },
+                  h('span', null, color ? h('i', { className: 'dshstat-dot', style: { background: color } }) : null, label),
+                  h('b', null, value),
+                ),
+              ),
+              tip.footer
+                ? h('div', { className: 'dshstat-tip-total' }, h('span', null, tip.footer[0]), h('b', null, tip.footer[1]))
+                : null,
             )
           : null,
       )
@@ -1409,8 +1463,47 @@ window.__ModuleLoader__.load({
       const { t, fmt } = useLocaleFace(locale, fallbackLocale)
       const { status, data, error, refresh, auto, setAuto } = useSnapshotData()
       const [rangeDays, setRangeDays] = useState(0)
+      const [contentWidth, setContentWidth] = useState(() => {
+        try {
+          const saved = Number(localStorage.getItem(CONTENT_WIDTH_KEY))
+          if (Number.isFinite(saved) && saved >= MIN_CONTENT_WIDTH) return Math.min(MAX_CONTENT_WIDTH, saved)
+        } catch {
+          /* storage may be unavailable; the default width still applies */
+        }
+        return DEFAULT_CONTENT_WIDTH
+      })
+
+      useEffect(() => {
+        try {
+          localStorage.setItem(CONTENT_WIDTH_KEY, String(contentWidth))
+        } catch {
+          /* a refused write only costs the preference */
+        }
+      }, [contentWidth])
+
+      const startResize = (side) => (event) => {
+        event.preventDefault()
+        const startX = event.clientX
+        const startWidth = contentWidth
+        const move = (moveEvent) => {
+          const delta = moveEvent.clientX - startX
+          const next = Math.round(side === 'right' ? startWidth + delta * 2 : startWidth - delta * 2)
+          setContentWidth(Math.max(MIN_CONTENT_WIDTH, Math.min(MAX_CONTENT_WIDTH, next)))
+        }
+        const stop = () => {
+          window.removeEventListener('pointermove', move)
+          window.removeEventListener('pointerup', stop)
+          document.body.style.cursor = ''
+          document.body.style.userSelect = ''
+        }
+        document.body.style.cursor = 'col-resize'
+        document.body.style.userSelect = 'none'
+        window.addEventListener('pointermove', move)
+        window.addEventListener('pointerup', stop)
+      }
 
       const view = useMemo(() => (data ? aggregate(data, rangeDays) : null), [data, rangeDays])
+
       const series = useMemo(() => (data ? buildSeries(data.days, rangeDays, Date.now()) : []), [data, rangeDays])
 
       if (status === 'loading' && !data) {
@@ -1439,11 +1532,14 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dshstat-root' },
-        h(StyleTag),
+        { className: 'dshstat-shell' },
         h(
           'div',
-          { className: 'dshstat-inner' },
+          { className: 'dshstat-root' },
+          h(StyleTag),
+          h(
+            'div',
+            { className: 'dshstat-inner', style: { maxWidth: `min(${contentWidth}px, calc(100% - ${CONTENT_GUTTER}px))` } },
           h(
             'header',
             { className: 'dshstat-head' },
@@ -1548,7 +1644,24 @@ window.__ModuleLoader__.load({
             t,
             fmt,
           }),
+          ),
         ),
+        h('div', {
+          className: 'dshstat-handle',
+          'data-side': 'left',
+          role: 'separator',
+          'aria-orientation': 'vertical',
+          style: { left: `calc((100% - min(${contentWidth}px, calc(100% - ${CONTENT_GUTTER}px))) / 2 - 10px)` },
+          onPointerDown: startResize('left'),
+        }),
+        h('div', {
+          className: 'dshstat-handle',
+          'data-side': 'right',
+          role: 'separator',
+          'aria-orientation': 'vertical',
+          style: { right: `calc((100% - min(${contentWidth}px, calc(100% - ${CONTENT_GUTTER}px))) / 2 - 10px)` },
+          onPointerDown: startResize('right'),
+        }),
       )
     }
 
