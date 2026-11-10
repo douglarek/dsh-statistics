@@ -497,6 +497,7 @@ export function apply(ctx, rawConfig = {}) {
               input: rule.input ?? 0,
               output: rule.output ?? 0,
               cacheRead: rule.cacheRead ?? 0,
+              cacheWrite: rule.cacheWrite ?? 0,
             })),
             fallbackRate: config.fallbackRate,
           },

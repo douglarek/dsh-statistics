@@ -33,7 +33,8 @@ window.__ModuleLoader__.load({
       'range.d90': '90d',
       'range.all': 'All',
       'kpi.tokens': 'Total tokens',
-      'kpi.tokensHint': '{input} input · {output} output · {cache} cache read',
+      'kpi.tokensHint': '{input} input · {output} output · {cache} cache read{write}',
+      'kpi.tokensWriteHint': ' · {write} cache write',
       'kpi.conversations': 'Conversations',
       'kpi.conversationsHint': '{turns} turns · {steps} steps · {tools} tool calls',
       'kpi.cost': 'Estimated cost',
@@ -52,6 +53,7 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': 'Input',
       'timeline.legendOutput': 'Output',
       'timeline.legendCache': 'Cache read',
+      'timeline.legendCacheWrite': 'Cache write',
       'metrics.cacheHit': 'Cache hit rate',
       'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} conversations · {turns} turns',
       'timeline.tipTotal': 'Total',
@@ -123,7 +125,8 @@ window.__ModuleLoader__.load({
       'range.d90': '90 天',
       'range.all': '全部',
       'kpi.tokens': '词元总量',
-      'kpi.tokensHint': '输入 {input} · 输出 {output} · 缓存读取 {cache}',
+      'kpi.tokensHint': '输入 {input} · 输出 {output} · 缓存读取 {cache}{write}',
+      'kpi.tokensWriteHint': ' · 缓存写入 {write}',
       'kpi.conversations': '会话数',
       'kpi.conversationsHint': '{turns} 轮 · {steps} 步 · {tools} 次工具调用',
       'kpi.cost': '预估费用',
@@ -142,6 +145,7 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': '输入',
       'timeline.legendOutput': '输出',
       'timeline.legendCache': '缓存读取',
+      'timeline.legendCacheWrite': '缓存写入',
       'metrics.cacheHit': '缓存命中率',
       'timeline.daySummary': '{tokens} 词元 · {cost} · {sessions} 个会话 · {turns} 轮',
       'timeline.tipTotal': '合计',
@@ -195,7 +199,7 @@ window.__ModuleLoader__.load({
 
     const CSS = `
 .dshstat-shell{position:relative;height:100%;min-height:0;display:flex;min-width:0}
-.dshstat-root{box-sizing:border-box;height:100%;max-height:100%;min-height:0;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:var(--dsw-static-amber-600,#dd8629);--dshstat-cost:#14b8a6;--dshstat-request:#8b5cf6;--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
+.dshstat-root{box-sizing:border-box;height:100%;max-height:100%;min-height:0;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.45;--dshstat-blue:var(--dsw-static-blue-500,#3b82f6);--dshstat-indigo:var(--dsw-static-deepseek-500,#4176e6);--dshstat-green:var(--dsw-static-green-500,#22c55e);--dshstat-amber:var(--dsw-static-amber-500,#f59e0b);--dshstat-red:var(--dsw-static-red-500,#ef4444);--dshstat-cache:var(--dsw-static-amber-600,#dd8629);--dshstat-cachewrite:var(--dsw-static-amber-500,#f59e0b);--dshstat-cost:#14b8a6;--dshstat-request:#8b5cf6;--dshstat-track:color-mix(in srgb,var(--dsw-alias-label-secondary) 16%,transparent)}
 .dshstat-root::-webkit-scrollbar{width:0;height:0}
 .dshstat-handle{position:absolute;top:0;bottom:0;width:20px;display:flex;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;z-index:5}
 .dshstat-handle::before{content:'';width:2px;height:132px;border-radius:2px;background:transparent;transition:background .15s ease,height .15s ease}
@@ -788,6 +792,7 @@ window.__ModuleLoader__.load({
       const costMax = niceMax(series.reduce((value, entry) => Math.max(value, entry.cost ?? 0), 0))
       const totalTokens = series.reduce((sum, entry) => sum + sumBuckets(entry.tokens), 0)
       const totalCost = series.reduce((sum, entry) => sum + (entry.cost ?? 0), 0)
+      const cacheWriteTotal = series.reduce((sum, entry) => sum + (entry.tokens?.cacheWrite ?? 0), 0)
       const requestMax = niceMax(series.reduce((value, entry) => Math.max(value, entry.requests ?? 0), 0))
       const totalRequests = series.reduce((sum, entry) => sum + (entry.requests ?? 0), 0)
       const perMillion = totalTokens > 0 ? totalCost / (totalTokens / 1_000_000) : 0
@@ -826,6 +831,7 @@ window.__ModuleLoader__.load({
         const scale = max > 0 ? 100 / max : 0
         return [
           { key: 'cacheRead', value: tokens.cacheRead * scale, color: 'var(--dshstat-cache)' },
+          { key: 'cacheWrite', value: tokens.cacheWrite * scale, color: 'var(--dshstat-cachewrite)' },
           { key: 'output', value: Math.max(tokens.output * scale, tokens.output > 0 ? 1.6 : 0), color: 'var(--dshstat-green)' },
           { key: 'input', value: Math.max(tokens.input * scale, tokens.input > 0 ? 1.6 : 0), color: 'var(--dshstat-blue)' },
         ].filter((segment) => segment.value > 0)
@@ -874,6 +880,7 @@ window.__ModuleLoader__.load({
               chip(t('timeline.legendInput'), 'var(--dshstat-blue)'),
               chip(t('timeline.legendOutput'), 'var(--dshstat-green)'),
               chip(t('timeline.legendCache'), 'var(--dshstat-cache)'),
+              cacheWriteTotal > 0 ? chip(t('timeline.legendCacheWrite'), 'var(--dshstat-cachewrite)') : null,
               chip(t('timeline.legendCost'), 'var(--dshstat-cost)'),
               requestsAvailable ? chip(t('timeline.legendRequests'), 'var(--dshstat-request)') : null,
             ),
@@ -953,12 +960,9 @@ window.__ModuleLoader__.load({
                         tipRow(t('timeline.legendInput'), hovered.tokens?.input ?? 0, 'var(--dshstat-blue)'),
                         tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
                         tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
-                        h(
-                          'div',
-                          { className: 'dshstat-daytip-row' },
-                          h('span', null, t('metrics.cacheHit')),
-                          h('b', null, formatHitRate(hitRate(hovered.tokens))),
-                        ),
+                        (hovered.tokens?.cacheWrite ?? 0) > 0
+                          ? tipRow(t('timeline.legendCacheWrite'), hovered.tokens.cacheWrite, 'var(--dshstat-cachewrite)')
+                          : null,
                         tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-cost)', fmt.usd),
                         requestsAvailable ? tipRow(t('timeline.legendRequests'), hovered.requests ?? 0, 'var(--dshstat-request)') : null,
                         h(
@@ -999,6 +1003,10 @@ window.__ModuleLoader__.load({
                     h('span', null, t('timeline.legendInput'), ' ', h('b', null, fmt.compact(active.tokens?.input ?? 0))),
                     h('span', null, t('timeline.legendOutput'), ' ', h('b', null, fmt.compact(active.tokens?.output ?? 0))),
                     h('span', null, t('timeline.legendCache'), ' ', h('b', null, fmt.compact(active.tokens?.cacheRead ?? 0))),
+                    (active.tokens?.cacheWrite ?? 0) > 0
+                      ? h('span', null, t('timeline.legendCacheWrite'), ' ', h('b', null, fmt.compact(active.tokens.cacheWrite)))
+                      : null,
+                    h('span', null, t('metrics.cacheHit'), ' ', h('b', null, formatHitRate(hitRate(active.tokens)))),
                     h('span', null, t('timeline.legendCost'), ' ', h('b', null, fmt.usd(active.cost))),
                     h('span', null, t('timeline.sessions', { count: fmt.int(active.sessions ?? 0) })),
                   )
@@ -1179,6 +1187,9 @@ window.__ModuleLoader__.load({
               tipRow(t('timeline.legendInput'), hovered.tokens?.input ?? 0, 'var(--dshstat-blue)'),
               tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
               tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
+              (hovered.tokens?.cacheWrite ?? 0) > 0
+                ? tipRow(t('timeline.legendCacheWrite'), hovered.tokens.cacheWrite, 'var(--dshstat-cachewrite)')
+                : null,
               h(
                 'div',
                 { className: 'dshstat-daytip-total' },
@@ -1213,7 +1224,7 @@ window.__ModuleLoader__.load({
 
     function makeRateLookup(card, fallback) {
       const rules = (Array.isArray(card) ? card : []).map((rule) => ({ ...rule, compiled: globToRegExp(rule.match) }))
-      const fallbackRate = fallback ?? { input: 0, output: 0, cacheRead: 0 }
+      const fallbackRate = fallback ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
       return (id) => {
         const model = id.includes('/') ? id.slice(id.indexOf('/') + 1) : id
         for (const rule of rules) if (rule.compiled.test(id) || rule.compiled.test(model)) return rule
@@ -1223,12 +1234,13 @@ window.__ModuleLoader__.load({
 
     /** What each token bucket cost this session, in the snapshot's currency. */
     function costPartsOf(row, lookup) {
-      const parts = { input: 0, output: 0, cacheRead: 0 }
+      const parts = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
       for (const model of row.models ?? []) {
         const rate = lookup(model.id)
         parts.input += ((model.tokens?.input ?? 0) * (rate.input ?? 0)) / 1_000_000
         parts.output += ((model.tokens?.output ?? 0) * (rate.output ?? 0)) / 1_000_000
         parts.cacheRead += ((model.tokens?.cacheRead ?? 0) * (rate.cacheRead ?? 0)) / 1_000_000
+        parts.cacheWrite += ((model.tokens?.cacheWrite ?? 0) * (rate.cacheWrite ?? 0)) / 1_000_000
       }
       return parts
     }
@@ -1321,6 +1333,9 @@ window.__ModuleLoader__.load({
                     [t('timeline.legendInput'), fmt.compact(row.tokens.input), 'var(--dshstat-blue)'],
                     [t('timeline.legendOutput'), fmt.compact(row.tokens.output), 'var(--dshstat-green)'],
                     [t('timeline.legendCache'), fmt.compact(row.tokens.cacheRead), 'var(--dshstat-cache)'],
+                    ...((row.tokens?.cacheWrite ?? 0) > 0
+                      ? [[t('timeline.legendCacheWrite'), fmt.compact(row.tokens.cacheWrite), 'var(--dshstat-cachewrite)']]
+                      : []),
                   ],
                   footer: [t('kpi.tokens'), fmt.compact(row.totalTokens)],
                 }),
@@ -1331,6 +1346,7 @@ window.__ModuleLoader__.load({
               { key: 'input', value: parts.input, color: 'var(--dshstat-blue)' },
               { key: 'output', value: parts.output, color: 'var(--dshstat-green)' },
               { key: 'cacheRead', value: parts.cacheRead, color: 'var(--dshstat-cache)' },
+              { key: 'cacheWrite', value: parts.cacheWrite, color: 'var(--dshstat-cachewrite)' },
             ],
               center: fmt.usd(row.cost),
               share,
@@ -1704,6 +1720,7 @@ window.__ModuleLoader__.load({
                 input: fmt.compact(totals.input),
                 output: fmt.compact(totals.output),
                 cache: fmt.compact(totals.cacheRead),
+                write: (totals.cacheWrite ?? 0) > 0 ? t('kpi.tokensWriteHint', { write: fmt.compact(totals.cacheWrite) }) : '',
               }),
               accent: 'var(--dshstat-blue)',
               glyph: 'tokens',
