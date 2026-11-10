@@ -1,6 +1,6 @@
 {
   "name": "@douglarek/dsh-statistics",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Token usage, cost, budget, and CPU statistics for the conversations in this DeepSeek Harness profile",
   "type": "module",
