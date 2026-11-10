@@ -52,6 +52,7 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': 'Input',
       'timeline.legendOutput': 'Output',
       'timeline.legendCache': 'Cache read',
+      'metrics.cacheHit': 'Cache hit',
       'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} conversations · {turns} turns',
       'timeline.tipTotal': 'Total',
       'timeline.peak': 'Peak {date} · {tokens}',
@@ -141,6 +142,7 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': '输入',
       'timeline.legendOutput': '输出',
       'timeline.legendCache': '缓存读取',
+      'metrics.cacheHit': '缓存命中',
       'timeline.daySummary': '{tokens} 词元 · {cost} · {sessions} 个会话 · {turns} 轮',
       'timeline.tipTotal': '合计',
       'timeline.peak': '峰值 {date} · {tokens}',
@@ -345,6 +347,21 @@ window.__ModuleLoader__.load({
 
     function sumBuckets(tokens) {
       return BUCKETS.reduce((sum, bucket) => sum + (tokens?.[bucket] ?? 0), 0)
+    }
+
+    /**
+     * Share of prompt tokens served from cache: cache reads over cache reads plus
+     * the uncached input. Only the uncached part is billed at the input price, so
+     * this is the number that explains a cheap day.
+     */
+    function hitRate(tokens) {
+      const read = tokens?.cacheRead ?? 0
+      const miss = tokens?.input ?? 0
+      return read + miss > 0 ? (read / (read + miss)) * 100 : null
+    }
+
+    function formatHitRate(value) {
+      return value === null ? '—' : `${value.toFixed(1)}%`
     }
 
     function dayKeyOf(time) {
@@ -930,6 +947,12 @@ window.__ModuleLoader__.load({
                         tipRow(t('timeline.legendInput'), hovered.tokens?.input ?? 0, 'var(--dshstat-blue)'),
                         tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
                         tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
+                        h(
+                          'div',
+                          { className: 'dshstat-daytip-row' },
+                          h('span', null, t('metrics.cacheHit')),
+                          h('b', null, formatHitRate(hitRate(hovered.tokens))),
+                        ),
                         tipRow(t('timeline.legendCost'), hovered.cost ?? 0, 'var(--dshstat-cost)', fmt.usd),
                         requestsAvailable ? tipRow(t('timeline.legendRequests'), hovered.requests ?? 0, 'var(--dshstat-request)') : null,
                         h(
@@ -1150,6 +1173,12 @@ window.__ModuleLoader__.load({
               tipRow(t('timeline.legendInput'), hovered.tokens?.input ?? 0, 'var(--dshstat-blue)'),
               tipRow(t('timeline.legendOutput'), hovered.tokens?.output ?? 0, 'var(--dshstat-green)'),
               tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
+              h(
+                'div',
+                { className: 'dshstat-daytip-row' },
+                h('span', null, t('metrics.cacheHit')),
+                h('b', null, formatHitRate(hitRate(hovered.tokens))),
+              ),
               h(
                 'div',
                 { className: 'dshstat-daytip-total' },
