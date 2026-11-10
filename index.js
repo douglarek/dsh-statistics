@@ -284,6 +284,13 @@ export function apply(ctx, rawConfig = {}) {
 
   const cache = createSessionCache(ctx, config)
 
+  ctx.effect(() => {
+    const timer = setTimeout(() => {
+      cache.collect().catch(() => {})
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, 'dsh-statistics: warm the scan before the panel opens')
+
   const respond = async () => {
     try {
       const stored = await cache.collect()

@@ -375,9 +375,33 @@ window.__ModuleLoader__.load({
       return { t, fmt, active }
     }
 
+    const SNAPSHOT_CACHE_KEY = 'dsh-statistics:snapshot'
+
+    function readCachedSnapshot() {
+      try {
+        const raw = sessionStorage.getItem(SNAPSHOT_CACHE_KEY)
+        if (!raw) return null
+        const cached = JSON.parse(raw)
+        return (cached?.api ?? 1) === SNAPSHOT_API ? cached : null
+      } catch {
+        return null
+      }
+    }
+
+    function writeCachedSnapshot(value) {
+      try {
+        sessionStorage.setItem(SNAPSHOT_CACHE_KEY, JSON.stringify(value))
+      } catch {
+        /* quota or private mode: the panel still works, it just repaints from the host */
+      }
+    }
+
     function useSnapshotData() {
       const [refreshMs, setRefreshMs] = useState(4000)
-      const [state, setState] = useState({ status: 'loading', data: null, error: null })
+      const [state, setState] = useState(() => {
+        const cached = readCachedSnapshot()
+        return cached ? { status: 'ready', data: cached, error: null } : { status: 'loading', data: null, error: null }
+      })
       const [nonce, setNonce] = useState(0)
       const [auto, setAuto] = useState(true)
 
@@ -407,6 +431,7 @@ window.__ModuleLoader__.load({
               throw new Error(body?.error ?? `HTTP ${response.status}`)
             }
             if (typeof body?.config?.refreshMs === 'number') setRefreshMs(body.config.refreshMs)
+            writeCachedSnapshot(body)
             setState({ status: 'ready', data: body, error: null })
           } catch (error) {
             if (!alive || error?.name === 'AbortError') return
