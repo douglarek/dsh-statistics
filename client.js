@@ -76,10 +76,14 @@ window.__ModuleLoader__.load({
       'models.title': 'Models',
       'models.empty': 'No model usage recorded.',
       'models.fallback': 'fallback rate',
-      'card.turns': 'Turns · Steps',
+      'card.turns': 'Turns',
+      'card.turnsValue': '{turns} turns · {steps} steps',
       'card.all': 'All',
       'card.search': 'Search title, workspace, or model',
       'card.open': 'Open this session',
+      'card.range': '{from}–{to} of {total}',
+      'card.prev': 'Previous page',
+      'card.next': 'Next page',
       'card.sortRecent': 'Recent',
       'card.sortTokens': 'Tokens',
       'card.sortCost': 'Cost',
@@ -160,10 +164,14 @@ window.__ModuleLoader__.load({
       'models.title': '模型',
       'models.empty': '没有记录到模型用量。',
       'models.fallback': '回退费率',
-      'card.turns': '轮次 · 步数',
+      'card.turns': '轮次',
+      'card.turnsValue': '{turns} 轮 {steps} 步',
       'card.all': '全部',
       'card.search': '搜索标题 / 工作区 / 模型',
       'card.open': '打开该会话',
+      'card.range': '{from}–{to} / 共 {total}',
+      'card.prev': '上一页',
+      'card.next': '下一页',
       'card.sortRecent': '最近',
       'card.sortTokens': '词元',
       'card.sortCost': '费用',
@@ -191,13 +199,16 @@ window.__ModuleLoader__.load({
 .dshstat-btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer;transition:border-color .12s ease,background .12s ease}
 .dshstat-btn:hover{border-color:var(--dsw-alias-border-l2)}
 .dshstat-btn[data-on="true"]{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-brand-primary)}
-.dshstat-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l1);border-radius:7px;overflow:hidden;background:var(--dsw-alias-bg-layer-1)}
-.dshstat-seg button{height:28px;padding:0 10px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dshstat-seg{display:inline-flex;align-items:center;border:1px solid var(--dsw-alias-border-l1);border-radius:7px;overflow:hidden;background:var(--dsw-alias-bg-layer-1)}
+.dshstat-seg button{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 10px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;line-height:1;cursor:pointer}
 .dshstat-seg button+button{border-left:1px solid var(--dsw-alias-border-l1)}
 .dshstat-seg button[data-on="true"]{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dshstat-card{border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;min-width:0}
 .dshstat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
+.dshstat-pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;font-size:11.5px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums}
+.dshstat-pageind{display:inline-flex;align-items:center;justify-content:center;height:28px;min-width:54px;padding:0 8px;line-height:1;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-secondary)}
+.dshstat-pager .dshstat-seg button:disabled{opacity:.4;cursor:default}
 .dshstat-scard{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-base);padding:12px 14px;display:flex;flex-direction:column;gap:9px;min-width:0;cursor:pointer;transition:border-color .12s ease,background .12s ease}
 .dshstat-scard:hover{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-interactive-bg-hover)}
 .dshstat-scard:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}
@@ -211,9 +222,9 @@ window.__ModuleLoader__.load({
 .dshstat-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-variant-numeric:tabular-nums}
 .dshstat-donut-center b{font-size:10.5px;font-weight:600;letter-spacing:-0.02em}
 .dshstat-donut-center span{font-size:9.5px;color:var(--dsw-alias-label-secondary)}
-.dshstat-metrics{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;font-size:11.5px;min-width:0}
-.dshstat-metrics span{color:var(--dsw-alias-label-secondary);white-space:nowrap}
-.dshstat-metrics b{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dshstat-metrics{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;font-size:11.5px;min-width:0;flex:1 1 auto}
+.dshstat-metrics span{color:var(--dsw-alias-label-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dshstat-metrics b{justify-self:end;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .dshstat-scard-foot{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--dsw-alias-label-secondary);border-top:1px solid var(--dsw-alias-border-l1);padding-top:8px;font-variant-numeric:tabular-nums}
 .dshstat-scard-foot b{color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-sessionhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
@@ -1091,6 +1102,8 @@ window.__ModuleLoader__.load({
       )
     }
 
+    const PAGE_SIZE = 12
+
     const GLOB_CACHE = new Map()
 
     function globToRegExp(pattern) {
@@ -1214,7 +1227,7 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'dshstat-metrics' },
-            metric(t('card.turns'), `${fmt.int(row.turns)} · ${fmt.int(row.steps)}`),
+            metric(t('card.turns'), t('card.turnsValue', { turns: fmt.int(row.turns), steps: fmt.int(row.steps) })),
             metric(t('kpi.tokens'), fmt.compact(row.totalTokens)),
             metric(t('kpi.cost'), fmt.usd(row.cost)),
             metric(t('table.cpu'), cpu),
@@ -1235,6 +1248,7 @@ window.__ModuleLoader__.load({
       const [sort, setSort] = useState('recent')
       const [workspace, setWorkspace] = useState(null)
       const [query, setQuery] = useState('')
+      const [page, setPage] = useState(0)
       const [tip, setTip] = useState(null)
 
       const workspaces = useMemo(() => {
@@ -1259,6 +1273,16 @@ window.__ModuleLoader__.load({
           sort === 'tokens' ? (row) => row.totalTokens : sort === 'cost' ? (row) => row.cost : (row) => row.lastAt ?? 0
         return [...list].sort((left, right) => value(right) - value(left))
       }, [rows, sort, workspace, query])
+
+      const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
+      const currentPage = Math.min(page, pageCount - 1)
+      const pageRows = visible.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+      const from = visible.length === 0 ? 0 : currentPage * PAGE_SIZE + 1
+      const to = Math.min(visible.length, (currentPage + 1) * PAGE_SIZE)
+
+      useEffect(() => {
+        setPage(0)
+      }, [query, workspace, sort])
 
       const onTitleHover = (event, row) => {
         if (event === null) {
@@ -1331,7 +1355,7 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'dshstat-cards' },
-          visible.map((row) =>
+          pageRows.map((row) =>
             h(SessionCard, {
               key: row.sessionId,
               row,
@@ -1344,6 +1368,32 @@ window.__ModuleLoader__.load({
             }),
           ),
         ),
+        visible.length > PAGE_SIZE
+          ? h(
+              'div',
+              { className: 'dshstat-pager' },
+              h('span', { className: 'dshstat-pagerrange' }, t('card.range', { from, to, total: fmt.int(visible.length) })),
+              h(
+                'div',
+                { className: 'dshstat-seg' },
+                h(
+                  'button',
+                  { disabled: currentPage === 0, onClick: () => setPage(currentPage - 1), 'aria-label': t('card.prev') },
+                  '‹',
+                ),
+                h('span', { className: 'dshstat-pageind' }, `${currentPage + 1} / ${pageCount}`),
+                h(
+                  'button',
+                  {
+                    disabled: currentPage >= pageCount - 1,
+                    onClick: () => setPage(currentPage + 1),
+                    'aria-label': t('card.next'),
+                  },
+                  '›',
+                ),
+              ),
+            )
+          : null,
         tip
           ? h(
               'div',

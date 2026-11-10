@@ -88,5 +88,9 @@
   },
   "unit": {
     "tokens": "tokens"
+  },
+  "card": {
+    "turns": "Turns",
+    "turnsValue": "{turns} turns · {steps} steps"
   }
 }

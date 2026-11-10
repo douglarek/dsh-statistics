@@ -87,7 +87,9 @@
     "unpriced": "回退费率"
   },
   "card": {
-    "sortTokens": "词元"
+    "sortTokens": "词元",
+    "turns": "轮次",
+    "turnsValue": "{turns} 轮 {steps} 步"
   },
   "unit": {
     "tokens": "词元"
