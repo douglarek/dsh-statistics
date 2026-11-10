@@ -64,3 +64,5 @@
         statsTtlMs: 15000
         includeSubagents: true
         maxSessions: 500
+        # Fold cold session logs on a worker thread instead of the main one.
+        foldInWorker: true

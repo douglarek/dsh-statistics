@@ -10,9 +10,12 @@
  * @module dsh-statistics
  */
 
+import { readdir } from 'node:fs/promises'
+import { join } from 'node:path'
 import { applyFoldEvent, buildSnapshot, createFoldState, finishFold, normalizeRates } from './lib/fold.js'
 import { createCpuSampler } from './lib/cpu.js'
-import { cachePath, createCacheWriter, readCache } from './lib/cache.js'
+import { cachePath, createCacheWriter, readCache, sessionsRoot } from './lib/cache.js'
+import { createFoldPool } from './lib/fold-pool.js'
 
 /** Stable Cordis plugin name. */
 export const name = 'statistics'
@@ -46,6 +49,7 @@ const DEFAULTS = {
   statsTtlMs: 15000,
   includeSubagents: true,
   maxSessions: 500,
+  foldInWorker: true,
 }
 
 const BUDGET_PERIODS = new Set(['day', 'week', 'month', 'all'])
@@ -105,6 +109,7 @@ export function validateConfig(raw = {}) {
     throw new Error(`budgetPeriod must be one of ${[...BUDGET_PERIODS].join(', ')}`)
   }
   config.includeSubagents = config.includeSubagents !== false
+  config.foldInWorker = config.foldInWorker !== false
   return config
 }
 
@@ -195,6 +200,45 @@ async function readStoredSession(ctx, id) {
 }
 
 /**
+ * Map every session id on disk to its log file. A missing or unreadable tree
+ * yields an empty map, which sends every read back through the services.
+ *
+ * @returns {Promise<Map<string, string>>}
+ */
+async function sessionLogPaths() {
+  const root = sessionsRoot()
+  const paths = new Map()
+  let workspaces
+  try {
+    workspaces = await readdir(root, { withFileTypes: true })
+  } catch {
+    return paths
+  }
+  for (const workspace of workspaces) {
+    if (!workspace.isDirectory()) continue
+    let sessions
+    try {
+      sessions = await readdir(join(root, workspace.name), { withFileTypes: true })
+    } catch {
+      continue
+    }
+    for (const session of sessions) {
+      if (!session.isDirectory()) continue
+      const dir = join(root, workspace.name, session.name)
+      let files
+      try {
+        files = await readdir(dir)
+      } catch {
+        continue
+      }
+      const log = files.find((name) => name.startsWith('session.') && name.endsWith('.zstd'))
+      if (log !== undefined) paths.set(session.name, join(dir, log))
+    }
+  }
+  return paths
+}
+
+/**
  * Storage revisions for every persisted session, plus what went wrong if the
  * profile cannot report them. A missing revision is never reused, so an unknown
  * state costs a rescan rather than a stale number.
@@ -228,7 +272,7 @@ async function revisionsOf(ctx) {
  * @param {object} ctx
  * @param {ReturnType<typeof validateConfig>} config
  */
-function createSessionCache(ctx, config) {
+function createSessionCache(ctx, config, pool) {
   /** @type {Map<string, {revision: string | null, header: object, fold: object}>} */
   let folds = new Map()
   const file = cachePath()
@@ -252,8 +296,13 @@ function createSessionCache(ctx, config) {
     source = listed.source
     const { revisions, note } = await revisionsOf(ctx)
     revisionNote = note
+    const paths = config.foldInWorker ? await sessionLogPaths() : new Map()
     const next = new Map()
     let reused = 0
+    let viaWorker = 0
+    let workerEvents = 0
+    const workerTrace = []
+    let serviceEvents = 0
     for (const record of listed.records.slice(0, config.maxSessions)) {
       if (record.id.length === 0) continue
       const cached = folds.get(record.id)
@@ -270,11 +319,27 @@ function createSessionCache(ctx, config) {
         reused += 1
         continue
       }
+      const logPath = record.live ? undefined : paths.get(record.id)
+      if (logPath !== undefined) {
+        try {
+          const folded = await pool.fold(logPath, record.id)
+          if (workerTrace.length < 3) workerTrace.push({ id: record.id.slice(0, 12), events: folded.events, lines: folded.lines, bytes: folded.bytes })
+          if (folded.events === 0) throw new Error(`worker read no events from ${logPath} (lines ${folded.lines}, bytes ${folded.bytes})`)
+          next.set(record.id, { revision, header: folded.header, fold: folded.fold, state: null })
+          viaWorker += 1
+          workerEvents += folded.events
+          continue
+        } catch (error) {
+          lastError = `worker fold failed for ${record.id}: ${error instanceof Error ? error.message : String(error)}`
+        }
+      }
       try {
         const { header, events } = await readStoredSession(ctx, record.id)
+        if (events.length === 0 && revision !== null) throw new Error('storage returned no events')
         const state = createFoldState(header)
         for (const event of events) applyFoldEvent(state, event)
         next.set(record.id, { revision, header, fold: finishFold(state), state: record.live ? state : null })
+        serviceEvents += events.length
       } catch (error) {
         lastError = `could not read ${record.id}: ${error instanceof Error ? error.message : String(error)}`
         if (cached) next.set(record.id, cached)
@@ -284,7 +349,18 @@ function createSessionCache(ctx, config) {
     lastScanAt = Date.now()
     writer.schedule({
       sessions: Object.fromEntries([...folds].map(([id, entry]) => [id, { revision: entry.revision, header: entry.header, fold: entry.fold }])),
-      diagnostics: { source, revisionNote, cached: folds.size, reused },
+      diagnostics: {
+        source,
+        revisionNote,
+        cached: folds.size,
+        reused,
+        viaWorker,
+        workerEvents,
+        serviceEvents,
+        emptyFolds: [...folds.values()].filter((entry) => entry.fold.totalTokens === 0).length,
+        lastError,
+        workerTrace,
+      },
     })
   }
 
@@ -368,7 +444,9 @@ export function apply(ctx, rawConfig = {}) {
     cpu.setRunning(id, isRunning(payload.status))
   })
 
-  const cache = createSessionCache(ctx, config)
+  const pool = config.foldInWorker ? createFoldPool() : null
+  ctx.effect(() => () => pool?.dispose(), 'dsh-statistics: fold worker')
+  const cache = createSessionCache(ctx, config, pool)
   ctx.effect(() => () => cache.dispose(), 'dsh-statistics: persist the fold cache')
 
   const ACTIVITY_EVENTS = new Set(['turn/start', 'step/start', 'assistant/message', 'tool/call'])
