@@ -85,5 +85,8 @@
     "untitled": "Untitled conversation",
     "subagent": "Subagent",
     "unpriced": "Fallback rate"
+  },
+  "unit": {
+    "tokens": "tokens"
   }
 }

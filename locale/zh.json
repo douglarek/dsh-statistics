@@ -1,14 +1,14 @@
 {
   "meta": {
     "title": "统计",
-    "description": "汇总当前配置档案里所有会话的 token 用量、预估费用与预算，以及本机进程的 CPU 活动。"
+    "description": "汇总当前配置档案里所有会话的词元用量、预估费用与预算，以及本机进程的 CPU 活动。"
   },
   "panel": {
     "title": "统计",
     "refresh": "刷新",
     "autoRefresh": "自动刷新",
     "updated": "更新于 {time}",
-    "empty": "尚未找到带 token 用量的会话日志。",
+    "empty": "尚未找到带词元用量的会话日志。",
     "loading": "正在读取会话日志…",
     "failed": "无法读取统计数据：{message}",
     "retry": "重试",
@@ -18,7 +18,7 @@
     "source": "数据源：{source} · 已扫描 {sessions} 份日志"
   },
   "kpi": {
-    "tokens": "Token 总量",
+    "tokens": "词元总量",
     "tokensHint": "输入 {input} · 输出 {output} · 缓存读取 {cache}",
     "conversations": "会话数",
     "conversationsHint": "{turns} 轮 · {steps} 步 · {tools} 次工具调用",
@@ -41,10 +41,10 @@
     "legendCache": "缓存读取",
     "legendCost": "成本",
     "day": "{date}",
-    "daySummary": "{tokens} tokens · {cost} · {sessions} 个会话",
+    "daySummary": "{tokens} 词元 · {cost} · {sessions} 个会话 · {turns} 轮",
     "peak": "峰值 {date} · {tokens}",
     "sessions": "{count} 个会话",
-    "perMillion": "每 1M Token",
+    "perMillion": "每 1M 词元",
     "legendRequests": "请求数",
     "totalRequests": "总请求数"
   },
@@ -78,12 +78,18 @@
     "input": "输入",
     "output": "输出",
     "cacheRead": "缓存",
-    "tokens": "Token",
+    "tokens": "词元",
     "cost": "费用",
     "cpu": "CPU",
     "share": "占比",
     "untitled": "未命名会话",
     "subagent": "子代理",
     "unpriced": "回退费率"
+  },
+  "card": {
+    "sortTokens": "词元"
+  },
+  "unit": {
+    "tokens": "词元"
   }
 }

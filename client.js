@@ -76,6 +76,14 @@ window.__ModuleLoader__.load({
       'models.title': 'Models',
       'models.empty': 'No model usage recorded.',
       'models.fallback': 'fallback rate',
+      'card.turns': 'Turns · Steps',
+      'card.all': 'All',
+      'card.search': 'Search title, workspace, or model',
+      'card.open': 'Open this session',
+      'card.sortRecent': 'Recent',
+      'card.sortTokens': 'Tokens',
+      'card.sortCost': 'Cost',
+      'unit.tokens': 'tokens',
       'table.title': 'Conversations',
       'table.empty': 'No conversations in this range.',
       'table.conversation': 'Conversation',
@@ -95,7 +103,7 @@ window.__ModuleLoader__.load({
       'panel.autoRefresh': '自动刷新',
       'panel.updated': '更新于 {time}',
       'panel.staleHost': '宿主插件仍是旧版本（数据 v{host}，面板需要 v{want}）：重启 DSH 后新数据才会出现。',
-      'panel.empty': '尚未找到带 token 用量的会话日志。',
+      'panel.empty': '尚未找到带词元用量的会话日志。',
       'panel.loading': '正在读取会话日志…',
       'panel.failed': '无法读取统计数据：{message}',
       'panel.retry': '重试',
@@ -108,7 +116,7 @@ window.__ModuleLoader__.load({
       'range.d30': '30 天',
       'range.d90': '90 天',
       'range.all': '全部',
-      'kpi.tokens': 'Token 总量',
+      'kpi.tokens': '词元总量',
       'kpi.tokensHint': '输入 {input} · 输出 {output} · 缓存读取 {cache}',
       'kpi.conversations': '会话数',
       'kpi.conversationsHint': '{turns} 轮 · {steps} 步 · {tools} 次工具调用',
@@ -128,14 +136,14 @@ window.__ModuleLoader__.load({
       'timeline.legendInput': '输入',
       'timeline.legendOutput': '输出',
       'timeline.legendCache': '缓存读取',
-      'timeline.daySummary': '{tokens} tokens · {cost} · {sessions} 个会话 · {turns} 轮',
+      'timeline.daySummary': '{tokens} 词元 · {cost} · {sessions} 个会话 · {turns} 轮',
       'timeline.tipTotal': '合计',
       'timeline.peak': '峰值 {date} · {tokens}',
       'timeline.sessions': '{count} 个会话',
       'timeline.legendCost': '成本',
       'timeline.legendRequests': '请求数',
       'timeline.totalRequests': '总请求数',
-      'timeline.perMillion': '每 1M Token',
+      'timeline.perMillion': '每 1M 词元',
       'cpu.title': 'CPU 活动',
       'cpu.process': 'Harness 进程',
       'cpu.system': '系统',
@@ -152,11 +160,19 @@ window.__ModuleLoader__.load({
       'models.title': '模型',
       'models.empty': '没有记录到模型用量。',
       'models.fallback': '回退费率',
+      'card.turns': '轮次 · 步数',
+      'card.all': '全部',
+      'card.search': '搜索标题 / 工作区 / 模型',
+      'card.open': '打开该会话',
+      'card.sortRecent': '最近',
+      'card.sortTokens': '词元',
+      'card.sortCost': '费用',
+      'unit.tokens': '词元',
       'table.title': '会话',
       'table.empty': '该范围内没有会话。',
       'table.conversation': '会话',
       'table.lastActive': '最近活动',
-      'table.tokens': 'Token',
+      'table.tokens': '词元',
       'table.cost': '费用',
       'table.cpu': 'CPU',
       'table.share': '占比',
@@ -181,6 +197,35 @@ window.__ModuleLoader__.load({
 .dshstat-seg button[data-on="true"]{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dshstat-card{border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;min-width:0}
+.dshstat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
+.dshstat-scard{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-base);padding:12px 14px;display:flex;flex-direction:column;gap:9px;min-width:0;cursor:pointer;transition:border-color .12s ease,background .12s ease}
+.dshstat-scard:hover{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-interactive-bg-hover)}
+.dshstat-scard:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}
+.dshstat-scard-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
+.dshstat-scard-head b{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.dshstat-scard-when{flex:none;text-align:right;font-size:10.5px;line-height:1.4;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;display:flex;flex-direction:column}
+.dshstat-pills{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+.dshstat-pill{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:99px;background:var(--dshstat-track);color:var(--dsw-alias-label-secondary);font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dshstat-scard-body{display:flex;align-items:center;gap:14px;min-width:0}
+.dshstat-donut{position:relative;flex:none}
+.dshstat-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-variant-numeric:tabular-nums}
+.dshstat-donut-center b{font-size:10.5px;font-weight:600;letter-spacing:-0.02em}
+.dshstat-donut-center span{font-size:9.5px;color:var(--dsw-alias-label-secondary)}
+.dshstat-metrics{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;font-size:11.5px;min-width:0}
+.dshstat-metrics span{color:var(--dsw-alias-label-secondary);white-space:nowrap}
+.dshstat-metrics b{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dshstat-scard-foot{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--dsw-alias-label-secondary);border-top:1px solid var(--dsw-alias-border-l1);padding-top:8px;font-variant-numeric:tabular-nums}
+.dshstat-scard-foot b{color:var(--dsw-alias-label-primary);font-weight:600}
+.dshstat-sessionhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.dshstat-sessiontitle{display:flex;align-items:center;gap:8px;flex:none}
+.dshstat-sessiontitle em{font-style:normal;color:var(--dsw-alias-label-secondary);font-size:11.5px;font-variant-numeric:tabular-nums}
+.dshstat-search{flex:1 1 240px;min-width:160px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
+.dshstat-search::placeholder{color:var(--dsw-alias-label-secondary)}
+.dshstat-search:focus{outline:none;border-color:var(--dsw-alias-border-l2)}
+.dshstat-filterpills{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.dshstat-filterpills button{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:99px;border:1px solid var(--dsw-alias-border-l1);background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11.5px;cursor:pointer;max-width:180px;overflow:hidden;white-space:nowrap}
+.dshstat-filterpills button[data-on="true"]{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dshstat-filterpills em{font-style:normal;opacity:.65;font-variant-numeric:tabular-nums}
 .dshstat-kpi-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .dshstat-chip{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:7px;flex:none}
 .dshstat-label{font-size:11.5px;color:var(--dsw-alias-label-secondary);letter-spacing:.02em}
@@ -345,7 +390,18 @@ window.__ModuleLoader__.load({
         new Date(dayTime(day)).toLocaleDateString(localeId, { month: 'numeric', day: 'numeric' })
       const dayLong = (day) =>
         new Date(dayTime(day)).toLocaleDateString(localeId, { month: 'short', day: 'numeric', year: 'numeric' })
-      return { int, compact, usd, pct, duration, time, date, dayLabel, dayLong }
+      const relativeFormat = new Intl.RelativeTimeFormat(localeId, { numeric: 'auto' })
+      const relative = (value) => {
+        if (!Number.isFinite(value)) return '—'
+        const diff = Date.now() - value
+        const abs = Math.abs(diff)
+        if (abs < 60_000) return relativeFormat.format(0, 'minute')
+        if (abs < 3_600_000) return relativeFormat.format(-Math.round(diff / 60_000), 'minute')
+        if (abs < 86_400_000) return relativeFormat.format(-Math.round(diff / 3_600_000), 'hour')
+        if (abs < 30 * 86_400_000) return relativeFormat.format(-Math.round(diff / 86_400_000), 'day')
+        return date(value)
+      }
+      return { int, compact, usd, pct, duration, time, date, dayLabel, dayLong, relative }
     }
 
     function makeTranslate(locale, dicts) {
@@ -884,7 +940,7 @@ window.__ModuleLoader__.load({
                     'div',
                     { className: 'dshstat-detail' },
                     h('span', null, h('b', null, fmt.dayLong(active.day))),
-                    h('span', null, fmt.int(sumBuckets(active.tokens)), ' tokens'),
+                    h('span', null, fmt.int(sumBuckets(active.tokens)), ' ', t('unit.tokens')),
                     h('span', null, t('timeline.legendInput'), ' ', h('b', null, fmt.compact(active.tokens?.input ?? 0))),
                     h('span', null, t('timeline.legendOutput'), ' ', h('b', null, fmt.compact(active.tokens?.output ?? 0))),
                     h('span', null, t('timeline.legendCache'), ' ', h('b', null, fmt.compact(active.tokens?.cacheRead ?? 0))),
@@ -1024,7 +1080,7 @@ window.__ModuleLoader__.load({
                   h(
                     'div',
                     { className: 'dshstat-model-row' },
-                    h('span', { className: 'dshstat-model-num' }, fmt.compact(sumBuckets(model.tokens)), ' tokens'),
+                    h('span', { className: 'dshstat-model-num' }, fmt.compact(sumBuckets(model.tokens)), ' ', t('unit.tokens')),
                     model.explicit === false
                       ? h('span', { className: 'dshstat-tag' }, t('models.fallback'))
                       : h('span'),
@@ -1035,39 +1091,192 @@ window.__ModuleLoader__.load({
       )
     }
 
-    function ConversationTable({ rows, t, fmt }) {
-      const [sort, setSort] = useState({ key: 'lastAt', dir: 'desc' })
-      const [tip, setTip] = useState(null)
-      const maxTokens = rows.reduce((value, row) => Math.max(value, row.totalTokens), 0)
-      const sorted = useMemo(() => {
-        const factor = sort.dir === 'asc' ? 1 : -1
-        const value = (row) => {
-          if (sort.key === 'title') return (row.title ?? '').toLowerCase()
-          if (sort.key === 'lastAt') return row.lastAt ?? 0
-          if (sort.key === 'cpu') return row.cpu?.cpuMs ?? -1
-          if (sort.key === 'cost') return row.cost
-          return row.totalTokens
-        }
-        return [...rows].sort((left, right) => {
-          const a = value(left)
-          const b = value(right)
-          if (typeof a === 'string' || typeof b === 'string') return factor * String(a).localeCompare(String(b))
-          return factor * (a - b)
-        })
-      }, [rows, sort])
+    const GLOB_CACHE = new Map()
 
-      const header = (key, label, numeric) =>
+    function globToRegExp(pattern) {
+      let compiled = GLOB_CACHE.get(pattern)
+      if (compiled === undefined) {
+        compiled = new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`)
+        GLOB_CACHE.set(pattern, compiled)
+      }
+      return compiled
+    }
+
+    function makeRateLookup(card, fallback) {
+      const rules = (Array.isArray(card) ? card : []).map((rule) => ({ ...rule, compiled: globToRegExp(rule.match) }))
+      const fallbackRate = fallback ?? { input: 0, output: 0, cacheRead: 0 }
+      return (id) => {
+        const model = id.includes('/') ? id.slice(id.indexOf('/') + 1) : id
+        for (const rule of rules) if (rule.compiled.test(id) || rule.compiled.test(model)) return rule
+        return fallbackRate
+      }
+    }
+
+    /** What each token bucket cost this session, in the snapshot's currency. */
+    function costPartsOf(row, lookup) {
+      const parts = { input: 0, output: 0, cacheRead: 0 }
+      for (const model of row.models ?? []) {
+        const rate = lookup(model.id)
+        parts.input += ((model.tokens?.input ?? 0) * (rate.input ?? 0)) / 1_000_000
+        parts.output += ((model.tokens?.output ?? 0) * (rate.output ?? 0)) / 1_000_000
+        parts.cacheRead += ((model.tokens?.cacheRead ?? 0) * (rate.cacheRead ?? 0)) / 1_000_000
+      }
+      return parts
+    }
+
+    function Donut({ parts, center, share, fmt, size = 68 }) {
+      const sum = parts.reduce((total, part) => total + part.value, 0)
+      const radius = 27
+      const circumference = 2 * Math.PI * radius
+      let offset = 0
+      return h(
+        'div',
+        { className: 'dshstat-donut', style: { width: `${size}px`, height: `${size}px` } },
         h(
-          'button',
-          {
-            className: 'dshstat-th',
-            'data-on': sort.key === key,
-            'data-num': numeric ? 'true' : 'false',
-            onClick: () => setSort((previous) => ({ key, dir: previous.key === key && previous.dir === 'desc' ? 'asc' : 'desc' })),
+          'svg',
+          { viewBox: '0 0 68 68', width: size, height: size, 'aria-hidden': true },
+          h('circle', { cx: 34, cy: 34, r: radius, fill: 'none', stroke: 'var(--dshstat-track)', strokeWidth: 7 }),
+          sum > 0
+            ? parts.map((part) => {
+                const length = (part.value / sum) * circumference
+                const arc = h('circle', {
+                  key: part.key,
+                  cx: 34,
+                  cy: 34,
+                  r: radius,
+                  fill: 'none',
+                  stroke: part.color,
+                  strokeWidth: 7,
+                  strokeDasharray: `${length} ${circumference - length}`,
+                  strokeDashoffset: -offset,
+                  transform: 'rotate(-90 34 34)',
+                })
+                offset += length
+                return arc
+              })
+            : null,
+        ),
+        h('div', { className: 'dshstat-donut-center' }, h('b', null, center), h('span', null, fmt.pct((share ?? 0) * 100))),
+      )
+    }
+
+    function SessionCard({ row, share, lookup, t, fmt, onTitleHover, onOpen }) {
+      const parts = costPartsOf(row, lookup)
+      const cpu = row.cpu && row.cpu.cpuMs > 0 ? fmt.duration(row.cpu.cpuMs) : t('cpu.noSample')
+      const metric = (label, value) => [h('span', { key: `${label}-l` }, label), h('b', { key: `${label}-v` }, value)]
+      return h(
+        'article',
+        {
+          className: 'dshstat-scard',
+          role: 'button',
+          tabIndex: 0,
+          title: t('card.open'),
+          onClick: () => onOpen?.(row.sessionId),
+          onKeyDown: (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault()
+            onOpen?.(row.sessionId)
           },
-          label,
-          sort.key === key ? h('span', null, sort.dir === 'desc' ? '↓' : '↑') : null,
-        )
+        },
+        h(
+          'div',
+          { className: 'dshstat-scard-head' },
+          h(
+            'b',
+            {
+              onMouseEnter: (event) => onTitleHover(event, row),
+              onMouseLeave: () => onTitleHover(null),
+            },
+            row.title ?? t('table.untitled'),
+          ),
+          h('div', { className: 'dshstat-scard-when' }, h('span', null, fmt.relative(row.lastAt)), h('span', null, row.lastAt ? fmt.date(row.lastAt) : '—')),
+        ),
+        h(
+          'div',
+          { className: 'dshstat-pills' },
+          row.workspace ? h('span', { className: 'dshstat-pill', title: row.cwd ?? row.workspace }, row.workspace) : null,
+          row.origin === 'subagent' ? h('span', { className: 'dshstat-pill' }, t('table.subagent')) : null,
+          row.priced === false ? h('span', { className: 'dshstat-pill' }, t('table.unpriced')) : null,
+        ),
+        h(
+          'div',
+          { className: 'dshstat-scard-body' },
+          h(Donut, {
+            parts: [
+              { key: 'input', value: parts.input, color: 'var(--dshstat-blue)' },
+              { key: 'output', value: parts.output, color: 'var(--dshstat-green)' },
+              { key: 'cacheRead', value: parts.cacheRead, color: 'var(--dshstat-cache)' },
+            ],
+            center: fmt.usd(row.cost),
+            share,
+            fmt,
+          }),
+          h(
+            'div',
+            { className: 'dshstat-metrics' },
+            metric(t('card.turns'), `${fmt.int(row.turns)} · ${fmt.int(row.steps)}`),
+            metric(t('kpi.tokens'), fmt.compact(row.totalTokens)),
+            metric(t('kpi.cost'), fmt.usd(row.cost)),
+            metric(t('table.cpu'), cpu),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'dshstat-scard-foot' },
+          h('span', null, t('timeline.legendInput'), ' ', h('b', null, fmt.compact(row.tokens.input))),
+          h('span', null, t('timeline.legendOutput'), ' ', h('b', null, fmt.compact(row.tokens.output))),
+          h('span', null, t('timeline.legendCache'), ' ', h('b', null, fmt.compact(row.tokens.cacheRead))),
+        ),
+      )
+    }
+
+    function ConversationGrid({ rows, rangeCost, rates, onOpen, t, fmt }) {
+      const lookup = useMemo(() => makeRateLookup(rates?.card, rates?.fallback), [rates?.card, rates?.fallback])
+      const [sort, setSort] = useState('recent')
+      const [workspace, setWorkspace] = useState(null)
+      const [query, setQuery] = useState('')
+      const [tip, setTip] = useState(null)
+
+      const workspaces = useMemo(() => {
+        const counts = new Map()
+        for (const row of rows) {
+          const name = row.workspace ?? ''
+          if (name.length === 0) continue
+          counts.set(name, (counts.get(name) ?? 0) + 1)
+        }
+        return [...counts.entries()].sort((left, right) => right[1] - left[1])
+      }, [rows])
+
+      const visible = useMemo(() => {
+        const needle = query.trim().toLowerCase()
+        const list = rows.filter((row) => {
+          if (workspace !== null && (row.workspace ?? '') !== workspace) return false
+          if (needle.length === 0) return true
+          const haystack = [row.title, row.workspace, row.cwd, row.model].filter(Boolean).join(' ').toLowerCase()
+          return haystack.includes(needle)
+        })
+        const value =
+          sort === 'tokens' ? (row) => row.totalTokens : sort === 'cost' ? (row) => row.cost : (row) => row.lastAt ?? 0
+        return [...list].sort((left, right) => value(right) - value(left))
+      }, [rows, sort, workspace, query])
+
+      const onTitleHover = (event, row) => {
+        if (event === null) {
+          setTip(null)
+          return
+        }
+        const target = event.currentTarget
+        if (target.scrollWidth <= target.clientWidth) return
+        const rect = target.getBoundingClientRect()
+        const width = Math.min(560, Math.max(240, window.innerWidth - 48))
+        setTip({
+          title: row.title ?? t('table.untitled'),
+          cwd: row.cwd,
+          left: Math.max(16, Math.min(rect.left, window.innerWidth - width - 16)),
+          top: rect.bottom + 6,
+          width,
+        })
+      }
 
       if (rows.length === 0) {
         return h('div', { className: 'dshstat-card' }, h('div', { className: 'dshstat-state' }, t('table.empty')))
@@ -1078,95 +1287,75 @@ window.__ModuleLoader__.load({
         { className: 'dshstat-card' },
         h(
           'div',
-          { className: 'dshstat-section' },
-          h('h2', { className: 'dshstat-h2' }, t('table.title')),
-          h('div', { className: 'dshstat-legend' }, `${rows.length}`),
+          { className: 'dshstat-sessionhead' },
+          h(
+            'div',
+            { className: 'dshstat-sessiontitle' },
+            h('h2', { className: 'dshstat-h2' }, t('table.title')),
+            h('em', null, rows.length),
+          ),
+          h('input', {
+            className: 'dshstat-search',
+            type: 'search',
+            value: query,
+            placeholder: t('card.search'),
+            'aria-label': t('card.search'),
+            onChange: (event) => setQuery(event.target.value),
+          }),
+          h(
+            'div',
+            { className: 'dshstat-seg', role: 'group' },
+            h('button', { 'data-on': sort === 'recent', onClick: () => setSort('recent') }, t('card.sortRecent')),
+            h('button', { 'data-on': sort === 'tokens', onClick: () => setSort('tokens') }, t('card.sortTokens')),
+            h('button', { 'data-on': sort === 'cost', onClick: () => setSort('cost') }, t('card.sortCost')),
+          ),
         ),
         h(
           'div',
-          { className: 'dshstat-table' },
+          { className: 'dshstat-filterpills' },
           h(
-            'div',
-            { className: 'dshstat-thead' },
-            h('div', null, header('title', t('table.conversation'), false)),
-            h('div', null, header('lastAt', t('table.lastActive'), true)),
-            h('div', null, header('totalTokens', t('table.tokens'), true)),
-            h('div', null, header('cost', t('table.cost'), true)),
-            h('div', { className: 'dshstat-cpu-col' }, header('cpu', t('table.cpu'), true)),
+            'button',
+            { 'data-on': workspace === null, onClick: () => setWorkspace(null) },
+            t('card.all'),
+            h('em', null, rows.length),
           ),
-          sorted.map((row) =>
+          workspaces.map(([name, count]) =>
             h(
-              'div',
-              { key: row.sessionId, className: 'dshstat-tr' },
-              h(
-                'div',
-                { className: 'dshstat-name' },
-                h(
-                  'div',
-                  { className: 'dshstat-name-line' },
-                  h(
-                    'b',
-                    {
-                      onMouseEnter: (event) => {
-                        const target = event.currentTarget
-                        if (target.scrollWidth <= target.clientWidth) return
-                        const rect = target.getBoundingClientRect()
-                        const width = Math.min(560, Math.max(240, window.innerWidth - 48))
-                        setTip({
-                          title: row.title ?? t('table.untitled'),
-                          cwd: row.cwd,
-                          left: Math.max(16, Math.min(rect.left, window.innerWidth - width - 16)),
-                          top: Math.min(rect.bottom + 6, window.innerHeight - 96),
-                          width,
-                        })
-                      },
-                      onMouseLeave: () => setTip(null),
-                    },
-                    row.title ?? t('table.untitled'),
-                  ),
-                  row.origin === 'subagent' ? h('span', { className: 'dshstat-tag' }, t('table.subagent')) : null,
-                  row.priced === false ? h('span', { className: 'dshstat-tag' }, t('table.unpriced')) : null,
-                ),
-                h(
-                  'span',
-                  { className: 'dshstat-name-sub' },
-                  [row.workspace, row.model].filter(Boolean).join(' · ') || row.sessionId,
-                ),
-              ),
-              h('div', { className: 'dshstat-num' }, row.lastAt ? fmt.date(row.lastAt) : '—'),
-              h(
-                'div',
-                { className: 'dshstat-tok' },
-                h('span', { className: 'dshstat-num' }, fmt.compact(row.totalTokens)),
-                h(
-                  'div',
-                  { className: 'dshstat-tokbar' },
-                  h('span', { style: { width: `${maxTokens > 0 ? Math.max(2, (row.totalTokens / maxTokens) * 100) : 0}%` } }),
-                ),
-              ),
-              h('div', { className: 'dshstat-num' }, fmt.usd(row.cost)),
-              h(
-                'div',
-                { className: 'dshstat-num dshstat-cpu-col' },
-                row.cpu && row.cpu.cpuMs > 0
-                  ? h('span', { title: `${fmt.duration(row.cpu.cpuMs)} · ${fmt.pct(row.cpu.util)}` }, fmt.duration(row.cpu.cpuMs))
-                  : h('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, t('cpu.noSample')),
-              ),
+              'button',
+              { key: name, 'data-on': workspace === name, onClick: () => setWorkspace(workspace === name ? null : name) },
+              name,
+              h('em', null, count),
             ),
           ),
-          tip
-            ? h(
-                'div',
-                { className: 'dshstat-tip', style: { left: `${tip.left}px`, top: `${tip.top}px`, maxWidth: `${tip.width}px` } },
-                h('b', null, tip.title),
-                tip.cwd ? h('span', null, tip.cwd) : null,
-              )
-            : null,
         ),
+        h(
+          'div',
+          { className: 'dshstat-cards' },
+          visible.map((row) =>
+            h(SessionCard, {
+              key: row.sessionId,
+              row,
+              share: rangeCost > 0 ? row.cost / rangeCost : 0,
+              lookup,
+              t,
+              fmt,
+              onTitleHover,
+              onOpen,
+            }),
+          ),
+        ),
+        tip
+          ? h(
+              'div',
+              { className: 'dshstat-tip', style: { left: `${tip.left}px`, top: `${tip.top}px`, maxWidth: `${tip.width}px` } },
+              h('b', null, tip.title),
+              tip.cwd ? h('span', null, tip.cwd) : null,
+            )
+          : null,
       )
     }
 
-    function Panel({ locale, fallbackLocale }) {
+    function Panel({ locale, fallbackLocale, openSession }) {
       const { t, fmt } = useLocaleFace(locale, fallbackLocale)
       const { status, data, error, refresh, auto, setAuto } = useSnapshotData()
       const [rangeDays, setRangeDays] = useState(0)
@@ -1301,7 +1490,14 @@ window.__ModuleLoader__.load({
             h(ModelsCard, { models: view?.models ?? [], t, fmt }),
           ),
 
-          h(ConversationTable, { rows: view?.rows ?? [], t, fmt }),
+          h(ConversationGrid, {
+            rows: view?.rows ?? [],
+            rangeCost: view?.totals.cost ?? 0,
+            rates: { card: data?.config?.rateCard, fallback: data?.config?.fallbackRate },
+            onOpen: openSession,
+            t,
+            fmt,
+          }),
         ),
       )
     }
@@ -1348,10 +1544,15 @@ window.__ModuleLoader__.load({
           ),
         )
 
+        const openSession = (sessionId) => {
+          const workspace = ctx.get('uiWorkspace')
+          if (workspace && typeof workspace.openSession === 'function') workspace.openSession(sessionId)
+        }
+
         ctx.slots.inject('main', () =>
           ctx.slots.register(
             { name: 'main', key: PANEL_ID },
-            () => h(Panel, { locale, fallbackLocale }),
+            () => h(Panel, { locale, fallbackLocale, openSession }),
           ),
         )
       },
