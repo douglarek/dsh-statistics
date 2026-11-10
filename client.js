@@ -361,13 +361,13 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Round a hit rate to the precision that still shows the difference: two
-     * decimals normally, three once the share is above 99.99%, so 99.9988% does
-     * not print as a misleading 100.0%.
+     * Hit rate with a fixed four decimals, so a provider that reports almost
+     * nothing as uncached input still shows the difference instead of a
+     * misleading 100%: 99.9988%, not 100.0%.
      */
     function formatHitRate(value) {
       if (value === null) return '—'
-      return `${value.toFixed(value >= 99.99 ? 3 : 2)}%`
+      return `${value.toFixed(4)}%`
     }
 
     function dayKeyOf(time) {
@@ -1181,15 +1181,9 @@ window.__ModuleLoader__.load({
               tipRow(t('timeline.legendCache'), hovered.tokens?.cacheRead ?? 0, 'var(--dshstat-cache)'),
               h(
                 'div',
-                { className: 'dshstat-daytip-row' },
+                { className: 'dshstat-daytip-total' },
                 h('span', null, t('metrics.cacheHit')),
                 h('b', null, formatHitRate(hitRate(hovered.tokens))),
-              ),
-              h(
-                'div',
-                { className: 'dshstat-daytip-total' },
-                h('span', null, t('timeline.tipTotal'), ' ', h('b', null, fmt.compact(sumBuckets(hovered.tokens)))),
-                h('b', null, fmt.usd(hovered.cost)),
               ),
             )
           : null,
