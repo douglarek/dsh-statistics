@@ -401,6 +401,7 @@ window.__ModuleLoader__.load({
 
     function createFormat(localeId) {
       const number = new Intl.NumberFormat(localeId)
+      const money = new Intl.NumberFormat(localeId, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
       const int = (value) => (Number.isFinite(value) ? number.format(Math.round(value)) : '—')
       const compact = (value) => {
         if (!Number.isFinite(value)) return '—'
@@ -414,11 +415,9 @@ window.__ModuleLoader__.load({
       const usd = (value) => {
         if (!Number.isFinite(value)) return '—'
         const abs = Math.abs(value)
-        if (abs === 0) return '$0.00'
-        if (abs < 0.005) return '<$0.01'
-        if (abs < 1) return `$${value.toFixed(3)}`
-        if (abs < 100) return `$${value.toFixed(2)}`
-        return `$${int(value)}`
+        if (abs === 0) return '$0.000'
+        if (abs < 0.0005) return '<$0.001'
+        return `$${money.format(value)}`
       }
       const pct = (value) => (Number.isFinite(value) ? `${value < 10 ? value.toFixed(1) : Math.round(value)}%` : '—')
       const duration = (ms) => {
