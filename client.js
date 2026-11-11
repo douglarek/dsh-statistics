@@ -297,7 +297,11 @@ window.__ModuleLoader__.load({
 .dshstat-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--dsw-alias-border-l1)}
 .dshstat-stat b{display:block;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .dshstat-stat span{font-size:11px;color:var(--dsw-alias-label-secondary)}
-.dshstat-models{display:flex;flex-direction:column;gap:10px;max-height:236px}
+.dshstat-cardmodels{display:flex;flex-direction:column;min-height:0}
+.dshstat-cardcpu{display:flex;flex-direction:column;min-height:0}
+.dshstat-cardcpu .dshstat-stats{margin-top:auto}
+.dshstat-cardmodels .dshstat-models{flex:1 1 auto;min-height:0}
+.dshstat-models{display:flex;flex-direction:column;gap:10px}
 .dshstat-model{display:flex;flex-direction:column;gap:5px;border-radius:8px;transition:background .12s ease}
 .dshstat-model[data-hover="true"]{background:var(--dsw-alias-interactive-bg-hover)}
 .dshstat-model-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px}
@@ -1030,7 +1034,7 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dshstat-card' },
+        { className: 'dshstat-card dshstat-cardcpu' },
         h(
           'div',
           { className: 'dshstat-section', style: { marginBottom: '4px' } },
@@ -1108,6 +1112,8 @@ window.__ModuleLoader__.load({
     function ModelsCard({ models, t, fmt }) {
       const [sort, setSort] = useState('cost')
       const [tip, setTip] = useState(null)
+      const listRef = useRef(null)
+      const [viewport, setViewport] = useState(0)
       const metric = sort === 'tokens' ? (model) => sumBuckets(model.tokens) : (model) => model.cost
       const ordered = useMemo(
         () => [...models].sort((left, right) => metric(right) - metric(left) || right.cost - left.cost),
@@ -1120,6 +1126,26 @@ window.__ModuleLoader__.load({
         const nearBottom = event.clientY > window.innerHeight - 220
         setTip({ id: model.id, x: event.clientX + (nearRight ? -14 : 14), y: event.clientY + (nearBottom ? -14 : 14), flipX: nearRight, flipY: nearBottom })
       }
+      useEffect(() => {
+        const node = listRef.current
+        if (!node) return
+        const measure = () => {
+          const rows = [...node.children].slice(0, MODELS_VISIBLE)
+          if (rows.length === 0) {
+            setViewport(0)
+            return
+          }
+          const gap = parseFloat(getComputedStyle(node).rowGap) || 0
+          const height = rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0) + gap * (rows.length - 1)
+          setViewport(Math.ceil(height))
+        }
+        measure()
+        if (typeof ResizeObserver === 'undefined') return
+        const observer = new ResizeObserver(measure)
+        observer.observe(node)
+        return () => observer.disconnect()
+      }, [models.length, sort])
+
       const tipRow = (label, value, color) =>
         h(
           'div',
@@ -1129,7 +1155,7 @@ window.__ModuleLoader__.load({
         )
       return h(
         'div',
-        { className: 'dshstat-card' },
+        { className: 'dshstat-card dshstat-cardmodels' },
         h(
           'div',
           { className: 'dshstat-section' },
@@ -1152,7 +1178,7 @@ window.__ModuleLoader__.load({
           ? h('div', { className: 'dshstat-hint' }, t('models.empty'))
           : h(
               'div',
-              { className: 'dshstat-models dshstat-scroll' },
+              { className: 'dshstat-models dshstat-scroll', ref: listRef, style: viewport > 0 ? { maxHeight: `${viewport}px` } : undefined },
               ordered.map((model) =>
                 h(
                   'div',
@@ -1222,6 +1248,8 @@ window.__ModuleLoader__.load({
 
     /** Rows of session cards kept in view; the rest scroll. */
     const SESSION_ROWS = 4
+    /** Model rows kept in view; the rest scroll. */
+    const MODELS_VISIBLE = 4
     /** Card width the grid keeps; keep in sync with .dshstat-cards in the CSS. */
     const CARD_MIN = 272
     const CARD_GAP = 12
