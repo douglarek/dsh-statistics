@@ -1107,8 +1107,14 @@ window.__ModuleLoader__.load({
     }
 
     function ModelsCard({ models, t, fmt }) {
-      const max = models.reduce((value, model) => Math.max(value, model.cost), 0)
+      const [sort, setSort] = useState('cost')
       const [tip, setTip] = useState(null)
+      const metric = sort === 'tokens' ? (model) => sumBuckets(model.tokens) : (model) => model.cost
+      const ordered = useMemo(
+        () => [...models].sort((left, right) => metric(right) - metric(left) || right.cost - left.cost),
+        [models, sort],
+      )
+      const max = ordered.reduce((value, model) => Math.max(value, metric(model)), 0)
       const hovered = tip === null ? null : models.find((model) => model.id === tip.id) ?? null
       const show = (event, model) => {
         const nearRight = event.clientX > window.innerWidth - 280
@@ -1134,13 +1140,21 @@ window.__ModuleLoader__.load({
             h('h2', { className: 'dshstat-h2' }, t('models.title')),
             h('em', null, models.length),
           ),
+          models.length > 1
+            ? h(
+                'div',
+                { className: 'dshstat-seg', role: 'group' },
+                h('button', { 'data-on': sort === 'tokens', onClick: () => setSort('tokens') }, t('card.sortTokens')),
+                h('button', { 'data-on': sort === 'cost', onClick: () => setSort('cost') }, t('card.sortCost')),
+              )
+            : null,
         ),
         models.length === 0
           ? h('div', { className: 'dshstat-hint' }, t('models.empty'))
           : h(
               'div',
               { className: 'dshstat-models dshstat-scroll' },
-              models.map((model) =>
+              ordered.map((model) =>
                 h(
                   'div',
                   {
@@ -1162,7 +1176,7 @@ window.__ModuleLoader__.load({
                     { className: 'dshstat-bar', style: { marginTop: 0 } },
                     h('span', {
                       style: {
-                        width: `${max > 0 ? Math.max(2, (model.cost / max) * 100) : 0}%`,
+                        width: `${max > 0 ? Math.max(2, (metric(model) / max) * 100) : 0}%`,
                         background: model.explicit === false ? 'var(--dshstat-amber)' : undefined,
                       },
                     }),
