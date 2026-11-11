@@ -17,10 +17,11 @@ profile and reports what those conversations actually cost. It adds a
   progress bar, and a projection to the end of the period.
 - **Token usage timeline** — one stacked column per day, switchable between all
   tokens and input + output only, with a selectable day detail line.
-- **Models** — token volume and cost per `provider/model`, flagging models that
-  fell back to the catch-all rate.
-- **Conversations** — a sortable table of every conversation with its tokens,
-  estimated cost, and attributed CPU time, newest activity first by default.
+- **Models** — token volume and cost per `provider/model`, four rows in view and
+  the rest scrolling, flagging models that fell back to the catch-all rate.
+- **Conversations** — sortable cards for every conversation with its tokens,
+  estimated cost, and attributed CPU time, newest activity first by default, four
+  rows in view and the rest scrolling.
 - **CPU activity** — the host process utilization history (last few minutes),
   system utilization, load average, core count, and memory, next to live
   per-conversation CPU attribution.
