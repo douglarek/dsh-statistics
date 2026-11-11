@@ -85,9 +85,6 @@ window.__ModuleLoader__.load({
       'card.search': 'Search title, workspace, or model',
       'card.open': 'Open this session',
       'card.composition': 'Token composition',
-      'card.range': '{from}–{to} of {total}',
-      'card.prev': 'Previous page',
-      'card.next': 'Next page',
       'card.sortRecent': 'Recent',
       'card.sortTokens': 'Tokens',
       'card.sortCost': 'Cost',
@@ -177,9 +174,6 @@ window.__ModuleLoader__.load({
       'card.search': '搜索标题 / 工作区 / 模型',
       'card.open': '打开该会话',
       'card.composition': '词元构成',
-      'card.range': '{from}–{to} / 共 {total}',
-      'card.prev': '上一页',
-      'card.next': '下一页',
       'card.sortRecent': '最近',
       'card.sortTokens': '词元',
       'card.sortCost': '费用',
@@ -219,9 +213,12 @@ window.__ModuleLoader__.load({
 .dshstat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dshstat-card{border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;min-width:0}
 .dshstat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
-.dshstat-pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;font-size:11.5px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums}
-.dshstat-pageind{display:inline-flex;align-items:center;justify-content:center;height:28px;min-width:54px;padding:0 8px;line-height:1;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-secondary)}
-.dshstat-pager .dshstat-seg button:disabled{opacity:.4;cursor:default}
+.dshstat-scroll{overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.dshstat-scroll::-webkit-scrollbar{width:6px}
+.dshstat-scroll::-webkit-scrollbar-track{background:transparent}
+.dshstat-scroll::-webkit-scrollbar-thumb{background:transparent;border-radius:99px}
+.dshstat-scroll:hover::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2)}
+.dshstat-scroll:hover::-webkit-scrollbar-thumb:hover{background:var(--dsw-alias-label-secondary)}
 .dshstat-scard{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-base);padding:12px 14px;display:flex;flex-direction:column;gap:9px;min-width:0;cursor:pointer;transition:border-color .12s ease,background .12s ease}
 .dshstat-scard:hover{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-interactive-bg-hover)}
 .dshstat-scard:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}
@@ -241,8 +238,8 @@ window.__ModuleLoader__.load({
 .dshstat-scard-foot{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--dsw-alias-label-secondary);border-top:1px solid var(--dsw-alias-border-l1);padding-top:8px;font-variant-numeric:tabular-nums}
 .dshstat-scard-foot b{color:var(--dsw-alias-label-primary);font-weight:600}
 .dshstat-sessionhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-.dshstat-sessiontitle{display:flex;align-items:center;gap:8px;flex:none}
-.dshstat-sessiontitle em{font-style:normal;color:var(--dsw-alias-label-secondary);font-size:11.5px;font-variant-numeric:tabular-nums}
+.dshstat-titlegroup{display:flex;align-items:center;gap:8px;flex:none;min-width:0}
+.dshstat-titlegroup em{font-style:normal;color:var(--dsw-alias-label-secondary);font-size:11.5px;font-variant-numeric:tabular-nums}
 .dshstat-search{flex:1 1 240px;min-width:160px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
 .dshstat-search::placeholder{color:var(--dsw-alias-label-secondary)}
 .dshstat-search:focus{outline:none;border-color:var(--dsw-alias-border-l2)}
@@ -300,7 +297,7 @@ window.__ModuleLoader__.load({
 .dshstat-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--dsw-alias-border-l1)}
 .dshstat-stat b{display:block;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .dshstat-stat span{font-size:11px;color:var(--dsw-alias-label-secondary)}
-.dshstat-models{display:flex;flex-direction:column;gap:10px}
+.dshstat-models{display:flex;flex-direction:column;gap:10px;max-height:236px}
 .dshstat-model{display:flex;flex-direction:column;gap:5px;border-radius:8px;transition:background .12s ease}
 .dshstat-model[data-hover="true"]{background:var(--dsw-alias-interactive-bg-hover)}
 .dshstat-model-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px}
@@ -1112,11 +1109,11 @@ window.__ModuleLoader__.load({
     function ModelsCard({ models, t, fmt }) {
       const max = models.reduce((value, model) => Math.max(value, model.cost), 0)
       const [tip, setTip] = useState(null)
-      const hovered = tip !== null && models[tip.index] ? models[tip.index] : null
-      const show = (event, index) => {
+      const hovered = tip === null ? null : models.find((model) => model.id === tip.id) ?? null
+      const show = (event, model) => {
         const nearRight = event.clientX > window.innerWidth - 280
         const nearBottom = event.clientY > window.innerHeight - 220
-        setTip({ index, x: event.clientX + (nearRight ? -14 : 14), y: event.clientY + (nearBottom ? -14 : 14), flipX: nearRight, flipY: nearBottom })
+        setTip({ id: model.id, x: event.clientX + (nearRight ? -14 : 14), y: event.clientY + (nearBottom ? -14 : 14), flipX: nearRight, flipY: nearBottom })
       }
       const tipRow = (label, value, color) =>
         h(
@@ -1128,21 +1125,30 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { className: 'dshstat-card' },
-        h('div', { className: 'dshstat-section' }, h('h2', { className: 'dshstat-h2' }, t('models.title'))),
+        h(
+          'div',
+          { className: 'dshstat-section' },
+          h(
+            'div',
+            { className: 'dshstat-titlegroup' },
+            h('h2', { className: 'dshstat-h2' }, t('models.title')),
+            h('em', null, models.length),
+          ),
+        ),
         models.length === 0
           ? h('div', { className: 'dshstat-hint' }, t('models.empty'))
           : h(
               'div',
-              { className: 'dshstat-models' },
-              models.map((model, index) =>
+              { className: 'dshstat-models dshstat-scroll' },
+              models.map((model) =>
                 h(
                   'div',
                   {
                     key: model.id,
                     className: 'dshstat-model',
-                    'data-hover': tip !== null && tip.index === index ? 'true' : 'false',
-                    onMouseEnter: (event) => show(event, index),
-                    onMouseMove: (event) => show(event, index),
+                    'data-hover': tip !== null && tip.id === model.id ? 'true' : 'false',
+                    onMouseEnter: (event) => show(event, model),
+                    onMouseMove: (event) => show(event, model),
                     onMouseLeave: () => setTip(null),
                   },
                   h(
@@ -1201,7 +1207,8 @@ window.__ModuleLoader__.load({
       )
     }
 
-    const PAGE_SIZE = 12
+    /** Rows of session cards kept in view; the rest scroll. */
+    const SESSION_ROWS = 4
     /** Card width the grid keeps; keep in sync with .dshstat-cards in the CSS. */
     const CARD_MIN = 272
     const CARD_GAP = 12
@@ -1383,7 +1390,6 @@ window.__ModuleLoader__.load({
       const [sort, setSort] = useState('recent')
       const [workspace, setWorkspace] = useState(null)
       const [query, setQuery] = useState('')
-      const [page, setPage] = useState(0)
       const [tip, setTip] = useState(null)
 
       const workspaces = useMemo(() => {
@@ -1409,41 +1415,46 @@ window.__ModuleLoader__.load({
         return [...list].sort((left, right) => value(right) - value(left))
       }, [rows, sort, workspace, query])
 
-      const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
-      const currentPage = Math.min(page, pageCount - 1)
-      const pageRows = visible.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
-      const from = visible.length === 0 ? 0 : currentPage * PAGE_SIZE + 1
-      const to = Math.min(visible.length, (currentPage + 1) * PAGE_SIZE)
-
-      useEffect(() => {
-        setPage(0)
-      }, [query, workspace, sort])
-
       // How many cards actually fit: the CSS auto-fill decides it, but a row that
       // ends half empty (7 + 5 of twelve) reads as a mistake, so measure the track
       // count and even the cards out across the rows.
       const gridRef = useRef(null)
       const [fitColumns, setFitColumns] = useState(0)
+      const [viewportRows, setViewportRows] = useState(0)
       useEffect(() => {
         const node = gridRef.current
-        if (!node || typeof ResizeObserver === 'undefined') return
+        if (!node) return
         const measure = () => {
           const width = node.clientWidth
           if (width > 0) setFitColumns(Math.max(1, Math.floor((width + CARD_GAP) / (CARD_MIN + CARD_GAP))))
+          const origin = node.getBoundingClientRect().top
+          const rows = new Map()
+          for (const card of node.children) {
+            const rect = card.getBoundingClientRect()
+            const top = Math.round(rect.top - origin)
+            rows.set(top, Math.max(rows.get(top) ?? 0, rect.height))
+          }
+          const heights = [...rows.entries()].sort((left, right) => left[0] - right[0]).slice(0, SESSION_ROWS).map(([, height]) => height)
+          if (heights.length === 0) {
+            setViewportRows(0)
+            return
+          }
+          setViewportRows(Math.round(heights.reduce((sum, height) => sum + height, 0) + (heights.length - 1) * CARD_GAP))
         }
         measure()
+        if (typeof ResizeObserver === 'undefined') return
         const observer = new ResizeObserver(measure)
         observer.observe(node)
         return () => observer.disconnect()
-      }, [])
+      }, [visible])
 
       const columns = useMemo(() => {
         if (fitColumns < 2) return 0
-        const count = pageRows.length
+        const count = visible.length
         if (count === 0) return fitColumns
         const spread = count > fitColumns ? Math.ceil(count / Math.ceil(count / fitColumns)) : Math.max(count, Math.ceil(fitColumns / 2))
         return Math.min(fitColumns, spread)
-      }, [fitColumns, pageRows.length])
+      }, [fitColumns, visible.length])
 
       const onTitleHover = (event, rowOrContent) => {
         if (event === null) {
@@ -1476,7 +1487,7 @@ window.__ModuleLoader__.load({
           { className: 'dshstat-sessionhead' },
           h(
             'div',
-            { className: 'dshstat-sessiontitle' },
+            { className: 'dshstat-titlegroup' },
             h('h2', { className: 'dshstat-h2' }, t('table.title')),
             h('em', null, rows.length),
           ),
@@ -1517,11 +1528,14 @@ window.__ModuleLoader__.load({
         h(
           'div',
           {
-            className: 'dshstat-cards',
+            className: 'dshstat-cards dshstat-scroll',
             ref: gridRef,
-            style: columns > 0 ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : undefined,
+            style: {
+              ...(columns > 0 ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : null),
+              ...(viewportRows > 0 ? { maxHeight: `${viewportRows}px` } : null),
+            },
           },
-          pageRows.map((row) =>
+          visible.map((row) =>
             h(SessionCard, {
               key: row.sessionId,
               row,
@@ -1534,32 +1548,6 @@ window.__ModuleLoader__.load({
             }),
           ),
         ),
-        visible.length > PAGE_SIZE
-          ? h(
-              'div',
-              { className: 'dshstat-pager' },
-              h('span', { className: 'dshstat-pagerrange' }, t('card.range', { from, to, total: fmt.int(visible.length) })),
-              h(
-                'div',
-                { className: 'dshstat-seg' },
-                h(
-                  'button',
-                  { disabled: currentPage === 0, onClick: () => setPage(currentPage - 1), 'aria-label': t('card.prev') },
-                  '‹',
-                ),
-                h('span', { className: 'dshstat-pageind' }, `${currentPage + 1} / ${pageCount}`),
-                h(
-                  'button',
-                  {
-                    disabled: currentPage >= pageCount - 1,
-                    onClick: () => setPage(currentPage + 1),
-                    'aria-label': t('card.next'),
-                  },
-                  '›',
-                ),
-              ),
-            )
-          : null,
         tip
           ? h(
               'div',
