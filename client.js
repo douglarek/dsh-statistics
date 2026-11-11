@@ -213,7 +213,7 @@ window.__ModuleLoader__.load({
 .dshstat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dshstat-card{border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;min-width:0}
 .dshstat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
-.dshstat-scroll{overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.dshstat-scroll{overflow-y:auto;padding-right:2px}
 .dshstat-scroll::-webkit-scrollbar{width:6px}
 .dshstat-scroll::-webkit-scrollbar-track{background:transparent}
 .dshstat-scroll::-webkit-scrollbar-thumb{background:transparent;border-radius:99px}
