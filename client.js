@@ -213,13 +213,11 @@ window.__ModuleLoader__.load({
 .dshstat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dshstat-card{border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;min-width:0}
 .dshstat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
-.dshstat-scroll{overflow-y:auto;padding-right:2px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:transparent transparent}
-.dshstat-scroll:hover{scrollbar-color:var(--dsw-alias-border-l2) transparent}
-.dshstat-scroll::-webkit-scrollbar{width:6px}
-.dshstat-scroll::-webkit-scrollbar-track{background:transparent}
-.dshstat-scroll::-webkit-scrollbar-thumb{background:transparent;border-radius:99px}
-.dshstat-scroll:hover::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2)}
-.dshstat-scroll:hover::-webkit-scrollbar-thumb:hover{background:var(--dsw-alias-label-secondary)}
+.dshstat-scrollwrap{position:relative;min-height:0}
+.dshstat-scroll{overflow-y:auto;padding-right:14px;scrollbar-width:none}
+.dshstat-scroll::-webkit-scrollbar{width:0;height:0}
+.dshstat-rail{position:absolute;top:0;right:0;width:6px;border-radius:99px;background:var(--dsw-alias-border-l2);opacity:0;pointer-events:none;transition:opacity .12s ease}
+.dshstat-scrollwrap:hover .dshstat-rail[data-on="true"]{opacity:1}
 .dshstat-scard{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-base);padding:12px 14px;display:flex;flex-direction:column;gap:9px;min-width:0;cursor:pointer;transition:border-color .12s ease,background .12s ease}
 .dshstat-scard:hover{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-interactive-bg-hover)}
 .dshstat-scard:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}
@@ -301,6 +299,7 @@ window.__ModuleLoader__.load({
 .dshstat-cardmodels{display:flex;flex-direction:column;min-height:0}
 .dshstat-cardcpu{display:flex;flex-direction:column;min-height:0}
 .dshstat-cardcpu .dshstat-stats{margin-top:auto}
+.dshstat-cardmodels .dshstat-scrollwrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 .dshstat-cardmodels .dshstat-models{flex:1 1 auto;min-height:0}
 .dshstat-models{display:flex;flex-direction:column;gap:10px}
 .dshstat-model{display:flex;flex-direction:column;gap:5px;border-radius:8px;transition:background .12s ease}
@@ -1110,10 +1109,46 @@ window.__ModuleLoader__.load({
       )
     }
 
+    /**
+     * Native scrollbars are unreliable here: the theme paints its own, and
+     * scrollbar-width / scrollbar-color switch the engine between overlay and
+     * classic bars, so an idle bar can stay visible. The lists hide the native
+     * bar and draw this rail instead — it only appears while the pointer is over
+     * a list that actually has more to scroll.
+     */
+    function useScrollRail(scrollerRef, railRef, deps) {
+      useEffect(() => {
+        const node = scrollerRef.current
+        const rail = railRef.current
+        if (!node || !rail) return
+        const update = () => {
+          const range = node.scrollHeight - node.clientHeight
+          if (range <= 1) {
+            rail.dataset.on = 'false'
+            return
+          }
+          const height = Math.max(24, Math.round((node.clientHeight / node.scrollHeight) * node.clientHeight))
+          rail.dataset.on = 'true'
+          rail.style.height = `${height}px`
+          rail.style.top = `${Math.round((node.scrollTop / range) * (node.clientHeight - height))}px`
+        }
+        update()
+        node.addEventListener('scroll', update, { passive: true })
+        if (typeof ResizeObserver === 'undefined') return () => node.removeEventListener('scroll', update)
+        const observer = new ResizeObserver(update)
+        observer.observe(node)
+        return () => {
+          node.removeEventListener('scroll', update)
+          observer.disconnect()
+        }
+      }, deps)
+    }
+
     function ModelsCard({ models, t, fmt }) {
       const [sort, setSort] = useState('cost')
       const [tip, setTip] = useState(null)
       const listRef = useRef(null)
+      const railRef = useRef(null)
       const [viewport, setViewport] = useState(0)
       const metric = sort === 'tokens' ? (model) => sumBuckets(model.tokens) : (model) => model.cost
       const ordered = useMemo(
@@ -1147,6 +1182,8 @@ window.__ModuleLoader__.load({
         return () => observer.disconnect()
       }, [models.length, sort])
 
+      useScrollRail(listRef, railRef, [models.length, sort])
+
       const tipRow = (label, value, color) =>
         h(
           'div',
@@ -1179,44 +1216,49 @@ window.__ModuleLoader__.load({
           ? h('div', { className: 'dshstat-hint' }, t('models.empty'))
           : h(
               'div',
-              { className: 'dshstat-models dshstat-scroll', ref: listRef, style: viewport > 0 ? { maxHeight: `${viewport}px` } : undefined },
-              ordered.map((model) =>
-                h(
-                  'div',
-                  {
-                    key: model.id,
-                    className: 'dshstat-model',
-                    'data-hover': tip !== null && tip.id === model.id ? 'true' : 'false',
-                    onMouseEnter: (event) => show(event, model),
-                    onMouseMove: (event) => show(event, model),
-                    onMouseLeave: () => setTip(null),
-                  },
+              { className: 'dshstat-scrollwrap' },
+              h(
+                'div',
+                { className: 'dshstat-models dshstat-scroll', ref: listRef, style: viewport > 0 ? { maxHeight: `${viewport}px` } : undefined },
+                ordered.map((model) =>
                   h(
                     'div',
-                    { className: 'dshstat-model-row' },
-                    h('span', { className: 'dshstat-model-id', title: model.id }, model.id),
-                    h('span', { className: 'dshstat-model-num' }, fmt.usd(model.cost)),
-                  ),
-                  h(
-                    'div',
-                    { className: 'dshstat-bar', style: { marginTop: 0 } },
-                    h('span', {
-                      style: {
-                        width: `${max > 0 ? Math.max(2, (metric(model) / max) * 100) : 0}%`,
-                        background: model.explicit === false ? 'var(--dshstat-amber)' : undefined,
-                      },
-                    }),
-                  ),
-                  h(
-                    'div',
-                    { className: 'dshstat-model-row' },
-                    h('span', { className: 'dshstat-model-num' }, fmt.compact(sumBuckets(model.tokens)), ' ', t('unit.tokens')),
-                    model.explicit === false
-                      ? h('span', { className: 'dshstat-tag' }, t('models.fallback'))
-                      : h('span'),
+                    {
+                      key: model.id,
+                      className: 'dshstat-model',
+                      'data-hover': tip !== null && tip.id === model.id ? 'true' : 'false',
+                      onMouseEnter: (event) => show(event, model),
+                      onMouseMove: (event) => show(event, model),
+                      onMouseLeave: () => setTip(null),
+                    },
+                    h(
+                      'div',
+                      { className: 'dshstat-model-row' },
+                      h('span', { className: 'dshstat-model-id', title: model.id }, model.id),
+                      h('span', { className: 'dshstat-model-num' }, fmt.usd(model.cost)),
+                    ),
+                    h(
+                      'div',
+                      { className: 'dshstat-bar', style: { marginTop: 0 } },
+                      h('span', {
+                        style: {
+                          width: `${max > 0 ? Math.max(2, (metric(model) / max) * 100) : 0}%`,
+                          background: model.explicit === false ? 'var(--dshstat-amber)' : undefined,
+                        },
+                      }),
+                    ),
+                    h(
+                      'div',
+                      { className: 'dshstat-model-row' },
+                      h('span', { className: 'dshstat-model-num' }, fmt.compact(sumBuckets(model.tokens)), ' ', t('unit.tokens')),
+                      model.explicit === false
+                        ? h('span', { className: 'dshstat-tag' }, t('models.fallback'))
+                        : h('span'),
+                    ),
                   ),
                 ),
               ),
+              h('span', { className: 'dshstat-rail', ref: railRef, 'data-on': 'false', 'aria-hidden': 'true' }),
             ),
         hovered
           ? h(
@@ -1461,6 +1503,7 @@ window.__ModuleLoader__.load({
       // ends half empty (7 + 5 of twelve) reads as a mistake, so measure the track
       // count and even the cards out across the rows.
       const gridRef = useRef(null)
+      const railRef = useRef(null)
       const [fitColumns, setFitColumns] = useState(0)
       const [viewportRows, setViewportRows] = useState(0)
       useEffect(() => {
@@ -1497,6 +1540,8 @@ window.__ModuleLoader__.load({
         const spread = count > fitColumns ? Math.ceil(count / Math.ceil(count / fitColumns)) : Math.max(count, Math.ceil(fitColumns / 2))
         return Math.min(fitColumns, spread)
       }, [fitColumns, visible.length])
+
+      useScrollRail(gridRef, railRef, [visible.length, columns])
 
       const onTitleHover = (event, rowOrContent) => {
         if (event === null) {
@@ -1569,26 +1614,31 @@ window.__ModuleLoader__.load({
         ),
         h(
           'div',
-          {
-            className: 'dshstat-cards dshstat-scroll',
-            ref: gridRef,
-            style: {
-              ...(columns > 0 ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : null),
-              ...(viewportRows > 0 ? { maxHeight: `${viewportRows}px` } : null),
+          { className: 'dshstat-scrollwrap' },
+          h(
+            'div',
+            {
+              className: 'dshstat-cards dshstat-scroll',
+              ref: gridRef,
+              style: {
+                ...(columns > 0 ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : null),
+                ...(viewportRows > 0 ? { maxHeight: `${viewportRows}px` } : null),
+              },
             },
-          },
-          visible.map((row) =>
-            h(SessionCard, {
-              key: row.sessionId,
-              row,
-              share: rangeCost > 0 ? row.cost / rangeCost : 0,
-              lookup,
-              t,
-              fmt,
-              onTitleHover,
-              onOpen,
-            }),
+            visible.map((row) =>
+              h(SessionCard, {
+                key: row.sessionId,
+                row,
+                share: rangeCost > 0 ? row.cost / rangeCost : 0,
+                lookup,
+                t,
+                fmt,
+                onTitleHover,
+                onOpen,
+              }),
+            ),
           ),
+          h('span', { className: 'dshstat-rail', ref: railRef, 'data-on': 'false', 'aria-hidden': 'true' }),
         ),
         tip
           ? h(
