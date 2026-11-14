@@ -8,6 +8,18 @@ profile and reports what those conversations actually cost. It adds a
 |:---:|:---:|
 | [![The Statistics panel: token totals, budget, a daily usage timeline with cost and request lines, CPU activity, and model costs](docs/panel.jpg)](docs/panel.jpg) | [![Sessions as cards: each with a cost-split donut, turns, tokens, cost, CPU, and the model it ran on](docs/sessions.jpg)](docs/sessions.jpg) |
 
+## Plugin index
+
+This plugin is listed in [dsh-plugin-index](https://github.com/douglarek/dsh-plugin-index).
+
+Index URL:
+
+```text
+https://raw.githubusercontent.com/douglarek/dsh-plugin-index/main/index.json
+```
+
+When the package version changes, add the new version and its release commit to the index; otherwise Discover keeps showing the previous version.
+
 ## What the panel shows
 
 - **Total tokens** with the input / output / cache-read split, conversation
