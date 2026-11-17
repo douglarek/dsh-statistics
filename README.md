@@ -35,8 +35,9 @@ When the package version changes, add the new version and its release commit to 
   estimated cost, and attributed CPU time, newest activity first by default, four
   rows in view and the rest scrolling.
 - **CPU activity** — the host process utilization history (last few minutes),
-  system utilization, load average, core count, and memory, next to live
-  per-conversation CPU attribution.
+  system utilization, load average, core count, and memory for the whole app
+  (renderer and helpers included) with the panel process's own share beside it,
+  next to live per-conversation CPU attribution.
 
 Ranges: last 7, last 30, last 90 days, or everything (the default). The header
 reports the data source and the number of logs scanned.

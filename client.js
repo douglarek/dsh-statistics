@@ -69,6 +69,7 @@ window.__ModuleLoader__.load({
       'cpu.load': 'Load 1m',
       'cpu.cores': '{count} cores',
       'cpu.memory': 'Memory',
+      'cpu.memoryApp': 'Memory · host {host}',
       'cpu.uptime': 'Sampling for {duration}',
       'cpu.average': 'Average {value}',
       'cpu.peak': 'Peak {value}',
@@ -158,6 +159,7 @@ window.__ModuleLoader__.load({
       'cpu.load': '1 分钟负载',
       'cpu.cores': '{count} 核',
       'cpu.memory': '内存',
+      'cpu.memoryApp': '内存 · 宿主 {host}',
       'cpu.uptime': '已采样 {duration}',
       'cpu.average': '平均 {value}',
       'cpu.peak': '峰值 {value}',
@@ -341,6 +343,11 @@ window.__ModuleLoader__.load({
 @media (max-width:900px){.dshstat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dshstat-split{grid-template-columns:minmax(0,1fr)}.dshstat-inner{padding:20px 18px 48px}.dshstat-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:720px){.dshstat-thead,.dshstat-tr{grid-template-columns:minmax(0,2.2fr) minmax(80px,1fr) minmax(96px,1.1fr) minmax(72px,0.9fr);gap:12px}.dshstat-cpu-col{display:none}}
 `
+
+    /** Memory reads as MB below a gigabyte and GB above it. */
+    function memoryText(mb) {
+      return mb >= 1024 ? `${(mb / 1024).toFixed(2)} GB` : `${Math.round(mb)} MB`
+    }
 
     function emptyBuckets() {
       return { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
@@ -1104,7 +1111,12 @@ window.__ModuleLoader__.load({
           h('div', { className: 'dshstat-stat' }, h('b', null, cpu ? fmt.pct(cpu.systemPct) : '—'), h('span', null, t('cpu.system'))),
           h('div', { className: 'dshstat-stat' }, h('b', null, cpu ? cpu.load1.toFixed(2) : '—'), h('span', null, t('cpu.load'))),
           h('div', { className: 'dshstat-stat' }, h('b', null, cpu ? `${cpu.cores}` : '—'), h('span', null, t('cpu.cores', { count: cpu?.cores ?? 0 }))),
-          h('div', { className: 'dshstat-stat' }, h('b', null, cpu ? `${cpu.rssMb.toFixed(0)} MB` : '—'), h('span', null, t('cpu.memory'))),
+          h(
+            'div',
+            { className: 'dshstat-stat' },
+            h('b', null, cpu ? memoryText(cpu.appRssMb > 0 ? cpu.appRssMb : cpu.rssMb) : '—'),
+            h('span', null, cpu?.appRssMb > 0 ? t('cpu.memoryApp', { host: memoryText(cpu.rssMb) }) : t('cpu.memory')),
+          ),
         ),
       )
     }

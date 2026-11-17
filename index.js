@@ -15,6 +15,7 @@ import { join } from 'node:path'
 import { applyFoldEvent, buildSnapshot, createFoldState, finishFold, normalizeRates } from './lib/fold.js'
 import { createCpuSampler } from './lib/cpu.js'
 import { cachePath, createCacheWriter, readCache, sessionsRoot } from './lib/cache.js'
+import { createAppMemoryProbe } from './lib/memory.js'
 import { createFoldPool } from './lib/fold-pool.js'
 
 /** Stable Cordis plugin name. */
@@ -432,7 +433,8 @@ export function apply(ctx, rawConfig = {}) {
   const config = validateConfig(rawConfig)
   const rates = normalizeRates(config.rates, config.fallbackRate)
 
-  const cpu = createCpuSampler({ intervalMs: config.cpuIntervalMs, historySize: config.cpuHistorySize })
+  const appMemory = createAppMemoryProbe()
+  const cpu = createCpuSampler({ intervalMs: config.cpuIntervalMs, historySize: config.cpuHistorySize, appMemory })
   ctx.effect(() => {
     cpu.start()
     return () => cpu.stop()
