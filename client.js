@@ -86,6 +86,7 @@ window.__ModuleLoader__.load({
       'card.search': 'Search title, workspace, or model',
       'card.open': 'Open this session',
       'card.composition': 'Token composition',
+      'card.subagents': '{count} subagents',
       'card.sortRecent': 'Recent',
       'card.sortTokens': 'Tokens',
       'card.sortCost': 'Cost',
@@ -176,6 +177,7 @@ window.__ModuleLoader__.load({
       'card.search': '搜索标题 / 工作区 / 模型',
       'card.open': '打开该会话',
       'card.composition': '词元构成',
+      'card.subagents': '子代理 {count}',
       'card.sortRecent': '最近',
       'card.sortTokens': '词元',
       'card.sortCost': '费用',
@@ -238,6 +240,14 @@ window.__ModuleLoader__.load({
 .dshstat-metrics b{justify-self:end;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .dshstat-scard-foot{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--dsw-alias-label-secondary);border-top:1px solid var(--dsw-alias-border-l1);padding-top:8px;font-variant-numeric:tabular-nums}
 .dshstat-scard-foot b{color:var(--dsw-alias-label-primary);font-weight:600}
+.dshstat-pillbtn{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:99px;border:1px solid var(--dsw-alias-border-l1);background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:10.5px;line-height:1;cursor:pointer}
+.dshstat-pillbtn:hover{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-primary)}
+.dshstat-pillbtn[data-on="true"]{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-primary)}
+.dshstat-sublist{display:flex;flex-direction:column;gap:1px;margin-top:2px;padding-left:8px;border-left:2px solid var(--dsw-alias-border-l1)}
+.dshstat-subrow{display:flex;flex-direction:column;align-items:stretch;gap:1px;min-width:0;padding:5px 6px;border:0;border-radius:6px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.dshstat-subrow:hover{background:var(--dsw-alias-interactive-bg-hover)}
+.dshstat-subrow b{min-width:0;font-size:11.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dshstat-subrow span{font-size:10.5px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dshstat-sessionhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .dshstat-titlegroup{display:flex;align-items:center;gap:8px;flex:none;min-width:0}
 .dshstat-titlegroup em{font-style:normal;color:var(--dsw-alias-label-secondary);font-size:11.5px;font-variant-numeric:tabular-nums}
@@ -343,6 +353,14 @@ window.__ModuleLoader__.load({
 @media (max-width:900px){.dshstat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dshstat-split{grid-template-columns:minmax(0,1fr)}.dshstat-inner{padding:20px 18px 48px}.dshstat-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:720px){.dshstat-thead,.dshstat-tr{grid-template-columns:minmax(0,2.2fr) minmax(80px,1fr) minmax(96px,1.1fr) minmax(72px,0.9fr);gap:12px}.dshstat-cpu-col{display:none}}
 `
+
+    /**
+     * Display name for a conversation. A spawned session inherits its parent's
+     * title, so its own descriptor label is the only thing that tells them apart.
+     */
+    function conversationTitle(row, t) {
+      return row?.label ?? row?.title ?? t('table.untitled')
+    }
 
     /** Memory reads as MB below a gigabyte and GB above it. */
     function memoryText(mb) {
@@ -1384,7 +1402,7 @@ window.__ModuleLoader__.load({
       )
     }
 
-    function SessionCard({ row, share, lookup, t, fmt, onTitleHover, onOpen }) {
+    function SessionCard({ row, share, lookup, t, fmt, onTitleHover, onOpen, subagents = [], expanded = false, onToggle }) {
       const parts = costPartsOf(row, lookup)
       const cpu = row.cpu && row.cpu.cpuMs > 0 ? fmt.duration(row.cpu.cpuMs) : t('cpu.noSample')
       const metric = (label, value) => [h('span', { key: `${label}-l` }, label), h('b', { key: `${label}-v` }, value)]
@@ -1411,7 +1429,7 @@ window.__ModuleLoader__.load({
               onMouseEnter: (event) => onTitleHover(event, row),
               onMouseLeave: () => onTitleHover(null),
             },
-            row.title ?? t('table.untitled'),
+            conversationTitle(row, t),
           ),
           h('div', { className: 'dshstat-scard-when' }, h('span', null, fmt.relative(row.lastAt)), h('span', null, row.lastAt ? fmt.date(row.lastAt) : '—')),
         ),
@@ -1421,6 +1439,23 @@ window.__ModuleLoader__.load({
           row.workspace ? h('span', { className: 'dshstat-pill', title: row.cwd ?? row.workspace }, row.workspace) : null,
           row.origin === 'subagent' ? h('span', { className: 'dshstat-pill' }, t('table.subagent')) : null,
           row.priced === false ? h('span', { className: 'dshstat-pill' }, t('table.unpriced')) : null,
+          subagents.length === 0
+            ? null
+            : h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dshstat-pillbtn',
+                  'data-on': expanded ? 'true' : 'false',
+                  'aria-expanded': expanded ? 'true' : 'false',
+                  onClick: (event) => {
+                    event.stopPropagation()
+                    onToggle?.(row.sessionId)
+                  },
+                },
+                t('card.subagents', { count: subagents.length }),
+                h('span', { 'aria-hidden': 'true' }, expanded ? '▴' : '▾'),
+              ),
         ),
         h(
           'div',
@@ -1478,6 +1513,33 @@ window.__ModuleLoader__.load({
             row.model ?? t('cpu.noSample'),
           ),
         ),
+        expanded && subagents.length > 0
+          ? h(
+              'div',
+              { className: 'dshstat-sublist' },
+              subagents.map((child) =>
+                h(
+                  'button',
+                  {
+                    key: child.sessionId,
+                    type: 'button',
+                    className: 'dshstat-subrow',
+                    title: t('card.open'),
+                    onClick: (event) => {
+                      event.stopPropagation()
+                      onOpen?.(child.sessionId)
+                    },
+                  },
+                  h('b', null, conversationTitle(child, t)),
+                  h(
+                    'span',
+                    null,
+                    `${fmt.relative(child.lastAt)} · ${fmt.compact(child.totalTokens)} · ${fmt.usd(child.cost)}`,
+                  ),
+                ),
+              ),
+            )
+          : null,
       )
     }
 
@@ -1487,6 +1549,7 @@ window.__ModuleLoader__.load({
       const [workspace, setWorkspace] = useState(null)
       const [query, setQuery] = useState('')
       const [tip, setTip] = useState(null)
+      const [expanded, setExpanded] = useState(() => new Set())
 
       const workspaces = useMemo(() => {
         const counts = new Map()
@@ -1503,13 +1566,45 @@ window.__ModuleLoader__.load({
         const list = rows.filter((row) => {
           if (workspace !== null && (row.workspace ?? '') !== workspace) return false
           if (needle.length === 0) return true
-          const haystack = [row.title, row.workspace, row.cwd, row.model].filter(Boolean).join(' ').toLowerCase()
+          const haystack = [row.label, row.title, row.workspace, row.cwd, row.model].filter(Boolean).join(' ').toLowerCase()
           return haystack.includes(needle)
         })
         const value =
           sort === 'tokens' ? (row) => row.totalTokens : sort === 'cost' ? (row) => row.cost : (row) => row.lastAt ?? 0
         return [...list].sort((left, right) => value(right) - value(left))
       }, [rows, sort, workspace, query])
+
+      // Subagent sessions hang off the session that spawned them: the grid lists
+      // the roots, and each card discloses its own children. A child whose parent
+      // is filtered out of the range stays a root so nothing disappears.
+      const grouped = useMemo(() => {
+        const byId = new Map(visible.map((row) => [row.sessionId, row]))
+        const rootOf = (row) => {
+          let current = row
+          const seen = new Set([row.sessionId])
+          while (current.origin === 'subagent' && typeof current.parentSessionId === 'string') {
+            const parent = byId.get(current.parentSessionId)
+            if (!parent || seen.has(parent.sessionId)) break
+            seen.add(parent.sessionId)
+            current = parent
+          }
+          return current
+        }
+        const children = new Map()
+        const roots = []
+        for (const row of visible) {
+          const root = row.origin === 'subagent' ? rootOf(row) : row
+          if (root === row) {
+            roots.push(row)
+            continue
+          }
+          if (!children.has(root.sessionId)) children.set(root.sessionId, [])
+          children.get(root.sessionId).push(row)
+        }
+        let subagents = 0
+        for (const list of children.values()) subagents += list.length
+        return { roots, children, subagents }
+      }, [visible])
 
       // How many cards actually fit: the CSS auto-fill decides it, but a row that
       // ends half empty (7 + 5 of twelve) reads as a mistake, so measure the track
@@ -1547,13 +1642,13 @@ window.__ModuleLoader__.load({
 
       const columns = useMemo(() => {
         if (fitColumns < 2) return 0
-        const count = visible.length
+        const count = grouped.roots.length
         if (count === 0) return fitColumns
         const spread = count > fitColumns ? Math.ceil(count / Math.ceil(count / fitColumns)) : Math.max(count, Math.ceil(fitColumns / 2))
         return Math.min(fitColumns, spread)
-      }, [fitColumns, visible.length])
+      }, [fitColumns, grouped.roots.length])
 
-      useScrollRail(gridRef, railRef, [visible.length, columns])
+      useScrollRail(gridRef, railRef, [grouped.roots.length, expanded, columns])
 
       const onTitleHover = (event, rowOrContent) => {
         if (event === null) {
@@ -1565,7 +1660,9 @@ window.__ModuleLoader__.load({
         if (!ready && target.scrollWidth <= target.clientWidth) return
         const rect = target.getBoundingClientRect()
         const width = Math.min(560, Math.max(240, window.innerWidth - 48))
-        const content = ready ? rowOrContent : { title: rowOrContent.title ?? t('table.untitled'), cwd: rowOrContent.cwd }
+        const content = ready
+          ? { ...rowOrContent, title: conversationTitle(rowOrContent, t) }
+          : { title: conversationTitle(rowOrContent, t), cwd: rowOrContent.cwd }
         setTip({
           ...content,
           left: Math.max(16, Math.min(rect.left, window.innerWidth - width - 16)),
@@ -1588,7 +1685,13 @@ window.__ModuleLoader__.load({
             'div',
             { className: 'dshstat-titlegroup' },
             h('h2', { className: 'dshstat-h2' }, t('table.title')),
-            h('em', null, rows.length),
+            h(
+              'em',
+              null,
+              grouped.subagents > 0
+                ? `${grouped.roots.length} · ${t('card.subagents', { count: grouped.subagents })}`
+                : `${grouped.roots.length}`,
+            ),
           ),
           h('input', {
             className: 'dshstat-search',
@@ -1637,7 +1740,7 @@ window.__ModuleLoader__.load({
                 ...(viewportRows > 0 ? { maxHeight: `${viewportRows}px` } : null),
               },
             },
-            visible.map((row) =>
+            grouped.roots.map((row) =>
               h(SessionCard, {
                 key: row.sessionId,
                 row,
@@ -1647,6 +1750,15 @@ window.__ModuleLoader__.load({
                 fmt,
                 onTitleHover,
                 onOpen,
+                subagents: grouped.children.get(row.sessionId) ?? [],
+                expanded: expanded.has(row.sessionId),
+                onToggle: () =>
+                  setExpanded((current) => {
+                    const next = new Set(current)
+                    if (next.has(row.sessionId)) next.delete(row.sessionId)
+                    else next.add(row.sessionId)
+                    return next
+                  }),
               }),
             ),
           ),
