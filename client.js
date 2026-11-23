@@ -649,7 +649,7 @@ window.__ModuleLoader__.load({
         totals: { ...totals, tokens: sumBuckets(totals), cost, turns, steps, toolCalls },
         rows,
         models: [...models.values()].sort((left, right) => right.cost - left.cost),
-        conversations: rows.filter((row) => row.totalTokens > 0).length,
+        conversations: rows.length,
       }
     }
 
@@ -1944,7 +1944,7 @@ window.__ModuleLoader__.load({
               label: t('kpi.cost'),
               value: fmt.usd(totals.cost),
               hint: t('kpi.costHint', {
-                priced: (view?.rows ?? []).filter((row) => row.totalTokens > 0 && row.priced).length,
+                priced: (view?.rows ?? []).filter((row) => row.priced).length,
                 total: view?.conversations ?? 0,
               }),
               accent: 'var(--dshstat-green)',
